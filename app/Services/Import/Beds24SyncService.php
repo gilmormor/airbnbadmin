@@ -68,9 +68,14 @@ class Beds24SyncService
         }
 
         [$montoBruto, $comisionPlataforma, $moneda] = $this->extraerImportes($booking);
+        $tarifaLimpieza = $this->extraerTarifaLimpieza($booking);
 
+        // Fórmula acordada con el propietario: el coanfitrión recibe el 100% de la tarifa
+        // de limpieza más un % de gestión sobre el resto del ingreso (bruto, ya descontada
+        // la comisión de la plataforma y la propia tarifa de limpieza).
         $pctCoanfitrion = (float) ($departamento->comision_coanfitrion_pct ?? 0);
-        $comisionCoanfitrion = round($montoBruto * $pctCoanfitrion / 100, 2);
+        $baseCoanfitrion = $montoBruto - $comisionPlataforma - $tarifaLimpieza;
+        $comisionCoanfitrion = round(($baseCoanfitrion * $pctCoanfitrion / 100) + $tarifaLimpieza, 2);
         $ingresoLiquido = $montoBruto - $comisionPlataforma - $comisionCoanfitrion;
 
         $reserva = Reserva::withoutGlobalScopes()->updateOrCreate(
@@ -207,5 +212,24 @@ class Beds24SyncService
         $moneda = $booking['currency'] ?? config('services.beds24.moneda_default');
 
         return [$montoBruto, $comisionPlataforma, $moneda];
+    }
+
+    /**
+     * La tarifa de limpieza no viene en un campo estructurado del booking — solo aparece
+     * como texto libre dentro de `rateDescription` (ej. "Cleaning fee 28000.00 CLP" y/o
+     * "Linen fee 12000.00CLP"). Se extrae por regex y se suman ambos conceptos si existen.
+     */
+    private function extraerTarifaLimpieza(array $booking): float
+    {
+        $texto = $booking['rateDescription'] ?? '';
+        $total = 0.0;
+
+        if (preg_match_all('/(?:Cleaning fee|Linen fee)\s+([\d.,]+)\s*[A-Z]{3}/i', $texto, $matches)) {
+            foreach ($matches[1] as $monto) {
+                $total += (float) str_replace(',', '', $monto);
+            }
+        }
+
+        return $total;
     }
 }
