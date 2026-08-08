@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'departamento_id', 'plataforma_id', 'codigo_externo', 'huesped',
     'fecha_checkin', 'fecha_checkout', 'noches', 'fecha_reserva', 'estado',
-    'monto_bruto', 'comision_plataforma', 'comision_coanfitrion', 'ingreso_liquido_propietario',
+    'monto_bruto', 'comision_plataforma', 'tarifa_limpieza', 'comision_coanfitrion', 'ingreso_liquido_propietario',
     'moneda', 'origen', 'payload_origen',
 ])]
 class Reserva extends Model

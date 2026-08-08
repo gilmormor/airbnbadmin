@@ -41,6 +41,7 @@ class ReporteReservasService
                 'reservas' => $grupo,
                 'monto_bruto' => $grupo->sum('monto_bruto'),
                 'comision_plataforma' => $grupo->sum('comision_plataforma'),
+                'tarifa_limpieza' => $grupo->sum('tarifa_limpieza'),
                 'comision_coanfitrion' => $grupo->sum('comision_coanfitrion'),
                 'ingreso_liquido_propietario' => $grupo->sum('ingreso_liquido_propietario'),
             ];
@@ -49,6 +50,7 @@ class ReporteReservasService
         $totales = [
             'monto_bruto' => $reservas->sum('monto_bruto'),
             'comision_plataforma' => $reservas->sum('comision_plataforma'),
+            'tarifa_limpieza' => $reservas->sum('tarifa_limpieza'),
             'comision_coanfitrion' => $reservas->sum('comision_coanfitrion'),
             'ingreso_liquido_propietario' => $reservas->sum('ingreso_liquido_propietario'),
         ];

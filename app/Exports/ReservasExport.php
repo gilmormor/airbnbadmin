@@ -5,10 +5,11 @@ namespace App\Exports;
 use App\Models\Reserva;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class ReservasExport implements FromCollection, WithHeadings, WithMapping
+class ReservasExport implements FromCollection, WithColumnFormatting, WithHeadings, WithMapping
 {
     public function __construct(private Collection $reservas) {}
 
@@ -22,7 +23,7 @@ class ReservasExport implements FromCollection, WithHeadings, WithMapping
         return [
             'Edificio', 'Departamento', 'Propietario', 'Plataforma', 'Código', 'Huésped',
             'Fecha de reserva', 'Check-in', 'Check-out', 'Noches', 'Estado', 'Monto bruto',
-            'Comisión plataforma', 'Comisión coanfitrión', 'Ingreso líquido propietario', 'Moneda',
+            'Comisión plataforma', 'Tarifas', 'Comisión coanfitrión', 'Ingreso líquido propietario', 'Moneda',
         ];
     }
 
@@ -43,9 +44,25 @@ class ReservasExport implements FromCollection, WithHeadings, WithMapping
             $reserva->estado,
             $reserva->monto_bruto,
             $reserva->comision_plataforma,
+            $reserva->tarifa_limpieza,
             $reserva->comision_coanfitrion,
             $reserva->ingreso_liquido_propietario,
             $reserva->moneda,
+        ];
+    }
+
+    /**
+     * Formato numérico sin decimales; el separador de miles lo define el idioma/región
+     * configurado en Excel de quien abre el archivo (en español de Chile se ve con punto).
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'L' => '#,##0',
+            'M' => '#,##0',
+            'N' => '#,##0',
+            'O' => '#,##0',
+            'P' => '#,##0',
         ];
     }
 }

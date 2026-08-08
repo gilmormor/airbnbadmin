@@ -89,6 +89,7 @@
                                     <th>Check-out</th>
                                     <th class="text-end">Bruto</th>
                                     <th class="text-end">Com. plataforma</th>
+                                    <th class="text-end">Tarifas</th>
                                     <th class="text-end">Com. coanfitrión</th>
                                     <th class="text-end">Líquido propietario</th>
                                 </tr>
@@ -102,20 +103,22 @@
                                         <td>{{ $reserva->fecha_reserva?->format('d/m/Y') }}</td>
                                         <td>{{ $reserva->fecha_checkin->format('d/m/Y') }}</td>
                                         <td>{{ $reserva->fecha_checkout->format('d/m/Y') }}</td>
-                                        <td class="text-end">{{ number_format($reserva->monto_bruto, 2) }}</td>
-                                        <td class="text-end">{{ number_format($reserva->comision_plataforma, 2) }}</td>
-                                        <td class="text-end">{{ number_format($reserva->comision_coanfitrion, 2) }}</td>
-                                        <td class="text-end">{{ number_format($reserva->ingreso_liquido_propietario, 2) }}</td>
+                                        <td class="text-end">{{ number_format($reserva->monto_bruto, 0, ',', '.') }}</td>
+                                        <td class="text-end">{{ number_format($reserva->comision_plataforma, 0, ',', '.') }}</td>
+                                        <td class="text-end">{{ number_format($reserva->tarifa_limpieza, 0, ',', '.') }}</td>
+                                        <td class="text-end">{{ number_format($reserva->comision_coanfitrion, 0, ',', '.') }}</td>
+                                        <td class="text-end">{{ number_format($reserva->ingreso_liquido_propietario, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr class="fw-bold table-light">
                                     <td colspan="6">Subtotal</td>
-                                    <td class="text-end">{{ number_format($grupo['monto_bruto'], 2) }}</td>
-                                    <td class="text-end">{{ number_format($grupo['comision_plataforma'], 2) }}</td>
-                                    <td class="text-end">{{ number_format($grupo['comision_coanfitrion'], 2) }}</td>
-                                    <td class="text-end">{{ number_format($grupo['ingreso_liquido_propietario'], 2) }}</td>
+                                    <td class="text-end">{{ number_format($grupo['monto_bruto'], 0, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($grupo['comision_plataforma'], 0, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($grupo['tarifa_limpieza'], 0, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($grupo['comision_coanfitrion'], 0, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($grupo['ingreso_liquido_propietario'], 0, ',', '.') }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -128,10 +131,11 @@
                     <div class="alert alert-primary d-flex justify-content-between mt-4">
                         <strong>Total general</strong>
                         <span>
-                            Bruto: {{ number_format($totales['monto_bruto'], 2) }} —
-                            Com. plataforma: {{ number_format($totales['comision_plataforma'], 2) }} —
-                            Com. coanfitrión: {{ number_format($totales['comision_coanfitrion'], 2) }} —
-                            <strong>Líquido: {{ number_format($totales['ingreso_liquido_propietario'], 2) }}</strong>
+                            Bruto: {{ number_format($totales['monto_bruto'], 0, ',', '.') }} —
+                            Com. plataforma: {{ number_format($totales['comision_plataforma'], 0, ',', '.') }} —
+                            Tarifas: {{ number_format($totales['tarifa_limpieza'], 0, ',', '.') }} —
+                            Com. coanfitrión: {{ number_format($totales['comision_coanfitrion'], 0, ',', '.') }} —
+                            <strong>Líquido: {{ number_format($totales['ingreso_liquido_propietario'], 0, ',', '.') }}</strong>
                         </span>
                     </div>
                 @endif

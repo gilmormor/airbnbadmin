@@ -71,12 +71,12 @@ class Beds24SyncService
         $tarifaLimpieza = $this->extraerTarifaLimpieza($booking);
 
         // Fórmula acordada con el propietario: el coanfitrión recibe el 100% de la tarifa
-        // de limpieza más un % de gestión sobre el resto del ingreso (bruto, ya descontada
-        // la comisión de la plataforma y la propia tarifa de limpieza).
+        // de limpieza (aparte) más un % de gestión sobre el resto del ingreso (bruto, ya
+        // descontada la comisión de la plataforma y la propia tarifa de limpieza).
         $pctCoanfitrion = (float) ($departamento->comision_coanfitrion_pct ?? 0);
         $baseCoanfitrion = $montoBruto - $comisionPlataforma - $tarifaLimpieza;
-        $comisionCoanfitrion = round(($baseCoanfitrion * $pctCoanfitrion / 100) + $tarifaLimpieza, 2);
-        $ingresoLiquido = $montoBruto - $comisionPlataforma - $comisionCoanfitrion;
+        $comisionCoanfitrion = round($baseCoanfitrion * $pctCoanfitrion / 100, 2);
+        $ingresoLiquido = $montoBruto - $comisionPlataforma - $tarifaLimpieza - $comisionCoanfitrion;
 
         $reserva = Reserva::withoutGlobalScopes()->updateOrCreate(
             [
@@ -93,6 +93,7 @@ class Beds24SyncService
                 'estado' => ($booking['status'] ?? '') === 'cancelled' ? 'cancelada' : 'confirmada',
                 'monto_bruto' => $montoBruto,
                 'comision_plataforma' => $comisionPlataforma,
+                'tarifa_limpieza' => $tarifaLimpieza,
                 'comision_coanfitrion' => $comisionCoanfitrion,
                 'ingreso_liquido_propietario' => $ingresoLiquido,
                 'moneda' => $moneda,

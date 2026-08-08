@@ -38,7 +38,7 @@
                             <td>{{ $reserva->fecha_checkin->format('d/m/Y') }}</td>
                             <td>{{ $reserva->fecha_checkout->format('d/m/Y') }}</td>
                             <td>{{ $reserva->estado }}</td>
-                            <td class="text-end">{{ number_format($reserva->ingreso_liquido_propietario, 2) }}</td>
+                            <td class="text-end">{{ number_format($reserva->ingreso_liquido_propietario, 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
