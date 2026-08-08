@@ -99,15 +99,30 @@ class Beds24SyncService
         return $reserva->wasRecentlyCreated;
     }
 
+    /**
+     * Sin filtro de fecha, la API solo devuelve reservas desde "ayer" en adelante.
+     * Se pide explícitamente un rango amplio hacia atrás para traer también el historial.
+     */
     private function fetchBookings(): array
     {
-        $response = Http::withHeaders(['token' => $this->getAccessToken()])
-            ->get(config('services.beds24.base_url').'/bookings', [
-                'includeInvoiceItems' => 'true',
-            ])
-            ->throw();
+        $bookings = [];
+        $page = 1;
 
-        return $response->json('data', []);
+        do {
+            $response = Http::withHeaders(['token' => $this->getAccessToken()])
+                ->get(config('services.beds24.base_url').'/bookings', [
+                    'includeInvoiceItems' => 'true',
+                    'arrivalFrom' => now()->subYears(2)->toDateString(),
+                    'page' => $page,
+                ])
+                ->throw();
+
+            $bookings = array_merge($bookings, $response->json('data', []));
+            $hayMasPaginas = $response->json('pages.nextPageExists', false);
+            $page++;
+        } while ($hayMasPaginas);
+
+        return $bookings;
     }
 
     private function getAccessToken(): string
