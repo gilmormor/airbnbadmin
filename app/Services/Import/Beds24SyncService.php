@@ -61,7 +61,7 @@ class Beds24SyncService
     public function upsertBooking(array $booking): bool
     {
         $plataforma = $this->resolverPlataforma($booking['referer'] ?? $booking['channel'] ?? null);
-        $departamento = $this->resolverDepartamento($booking['propId'] ?? null, $booking['roomId'] ?? null);
+        $departamento = $this->resolverDepartamento($booking['propertyId'] ?? null, $booking['roomId'] ?? null);
 
         if (! $plataforma || ! $departamento) {
             throw new \RuntimeException('No se pudo determinar la plataforma o el departamento del booking.');
@@ -175,26 +175,36 @@ class Beds24SyncService
      */
     public function fetchProperties(): array
     {
-        $response = Http::withHeaders(['token' => $this->getAccessToken()])
-            ->get(config('services.beds24.base_url').'/properties', [
-                'includeAllRooms' => 'true',
-            ])
-            ->throw();
+        $propiedades = [];
+        $page = 1;
 
-        return $response->json('data', []);
+        do {
+            $response = Http::withHeaders(['token' => $this->getAccessToken()])
+                ->get(config('services.beds24.base_url').'/properties', [
+                    'includeAllRooms' => 'true',
+                    'page' => $page,
+                ])
+                ->throw();
+
+            $propiedades = array_merge($propiedades, $response->json('data', []));
+            $hayMasPaginas = $response->json('pages.nextPageExists', false);
+            $page++;
+        } while ($hayMasPaginas);
+
+        return $propiedades;
     }
 
+    /**
+     * `price` es el monto bruto de la reserva y `commission` es la comisión que cobra la
+     * plataforma (confirmado contra datos reales: price - commission = monto neto del
+     * invoiceItem de tipo "charge"). El booking no trae su propia moneda — se usa la
+     * moneda por defecto configurada, ya que viene de la propiedad, no de la reserva.
+     */
     private function extraerImportes(array $booking): array
     {
         $montoBruto = (float) ($booking['price'] ?? 0);
-        $comisionPlataforma = 0.0;
-        $moneda = $booking['currency'] ?? 'USD';
-
-        foreach ($booking['invoiceItems'] ?? [] as $item) {
-            if (Str::contains(Str::lower($item['type'] ?? ''), 'commission')) {
-                $comisionPlataforma += abs((float) ($item['amount'] ?? 0));
-            }
-        }
+        $comisionPlataforma = abs((float) ($booking['commission'] ?? 0));
+        $moneda = $booking['currency'] ?? config('services.beds24.moneda_default');
 
         return [$montoBruto, $comisionPlataforma, $moneda];
     }

@@ -39,6 +39,7 @@ return [
         'base_url' => env('BEDS24_BASE_URL', 'https://api.beds24.com/v2'),
         'refresh_token' => env('BEDS24_REFRESH_TOKEN'),
         'webhook_token' => env('BEDS24_WEBHOOK_TOKEN'),
+        'moneda_default' => env('BEDS24_MONEDA_DEFAULT', 'USD'),
     ],
 
 ];
