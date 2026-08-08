@@ -19,6 +19,7 @@
                         <th>Plataforma</th>
                         <th>Código</th>
                         <th>Huésped</th>
+                        <th>Fecha de reserva</th>
                         <th>Check-in</th>
                         <th>Check-out</th>
                         <th>Estado</th>
@@ -33,6 +34,7 @@
                             <td>{{ $reserva->plataforma->nombre }}</td>
                             <td>{{ $reserva->codigo_externo }}</td>
                             <td>{{ $reserva->huesped }}</td>
+                            <td>{{ $reserva->fecha_reserva?->format('d/m/Y') }}</td>
                             <td>{{ $reserva->fecha_checkin->format('d/m/Y') }}</td>
                             <td>{{ $reserva->fecha_checkout->format('d/m/Y') }}</td>
                             <td>{{ $reserva->estado }}</td>
@@ -47,6 +49,6 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', () => new DataTable('#tabla-reservas', { order: [[5, 'desc']] }));
+        document.addEventListener('DOMContentLoaded', () => new DataTable('#tabla-reservas', { order: [[6, 'desc']] }));
     </script>
 @endpush

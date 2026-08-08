@@ -84,6 +84,7 @@
                                     <th>Plataforma</th>
                                     <th>Código</th>
                                     <th>Huésped</th>
+                                    <th>Fecha de reserva</th>
                                     <th>Check-in</th>
                                     <th>Check-out</th>
                                     <th class="text-end">Bruto</th>
@@ -98,6 +99,7 @@
                                         <td>{{ $reserva->plataforma->nombre }}</td>
                                         <td>{{ $reserva->codigo_externo }}</td>
                                         <td>{{ $reserva->huesped }}</td>
+                                        <td>{{ $reserva->fecha_reserva?->format('d/m/Y') }}</td>
                                         <td>{{ $reserva->fecha_checkin->format('d/m/Y') }}</td>
                                         <td>{{ $reserva->fecha_checkout->format('d/m/Y') }}</td>
                                         <td class="text-end">{{ number_format($reserva->monto_bruto, 2) }}</td>
@@ -109,7 +111,7 @@
                             </tbody>
                             <tfoot>
                                 <tr class="fw-bold table-light">
-                                    <td colspan="5">Subtotal</td>
+                                    <td colspan="6">Subtotal</td>
                                     <td class="text-end">{{ number_format($grupo['monto_bruto'], 2) }}</td>
                                     <td class="text-end">{{ number_format($grupo['comision_plataforma'], 2) }}</td>
                                     <td class="text-end">{{ number_format($grupo['comision_coanfitrion'], 2) }}</td>

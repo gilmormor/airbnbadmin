@@ -21,7 +21,7 @@ class ReservasExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             'Edificio', 'Departamento', 'Propietario', 'Plataforma', 'Código', 'Huésped',
-            'Check-in', 'Check-out', 'Noches', 'Estado', 'Monto bruto',
+            'Fecha de reserva', 'Check-in', 'Check-out', 'Noches', 'Estado', 'Monto bruto',
             'Comisión plataforma', 'Comisión coanfitrión', 'Ingreso líquido propietario', 'Moneda',
         ];
     }
@@ -36,6 +36,7 @@ class ReservasExport implements FromCollection, WithHeadings, WithMapping
             $reserva->plataforma->nombre,
             $reserva->codigo_externo,
             $reserva->huesped,
+            $reserva->fecha_reserva?->format('d/m/Y'),
             $reserva->fecha_checkin->format('d/m/Y'),
             $reserva->fecha_checkout->format('d/m/Y'),
             $reserva->noches,
