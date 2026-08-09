@@ -52,10 +52,17 @@ class CsvReservaImporter
         $detalleErrores = [];
 
         while (($fila = fgetcsv($handle)) !== false) {
+            $datos = $this->mapearFila($fila, $encabezados, $indices);
+
+            // Filas sin código de confirmación no son reservas (ej. líneas de tipo "Payout"
+            // en el historial de transacciones de Airbnb) — se ignoran silenciosamente.
+            if (empty($datos['codigo_externo'])) {
+                continue;
+            }
+
             $totalFilas++;
 
             try {
-                $datos = $this->mapearFila($fila, $encabezados, $indices);
                 $departamento = $this->resolverDepartamento($datos['listado'] ?? null, $departamentoDefault);
 
                 if (! $departamento) {

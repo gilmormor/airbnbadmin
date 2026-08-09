@@ -17,16 +17,21 @@ return [
 
     'mapeos' => [
 
+        // Verificado contra un export real de "Historial de transacciones" de Airbnb
+        // (cuenta en español). El archivo trae varios "Tipo" de fila (Payout, Cobro como
+        // coanfitrión, etc.) — el importador ignora silenciosamente cualquier fila sin
+        // código de confirmación (ej. las de tipo "Payout", que son resúmenes de
+        // transferencia bancaria, no reservas).
         'airbnb' => [
-            'codigo_externo' => ['Confirmation Code', 'Confirmation code', 'Código de confirmación'],
-            'huesped' => ['Guest', 'Huésped'],
-            'listado' => ['Listing', 'Anuncio'],
-            'fecha_checkin' => ['Start Date', 'Fecha de llegada'],
-            'fecha_checkout' => ['End Date', 'Fecha de salida'],
-            'fecha_reserva' => ['Booked', 'Date', 'Fecha de reserva'],
-            'monto_bruto' => ['Amount', 'Importe'],
-            'comision_plataforma' => ['Host Fee', 'Comisión de anfitrión'],
-            'moneda' => ['Currency', 'Moneda'],
+            'codigo_externo' => ['Código de confirmación', 'Confirmation Code', 'Confirmation code'],
+            'huesped' => ['Huésped', 'Guest'],
+            'listado' => ['Anuncio', 'Listing'],
+            'fecha_checkin' => ['Fecha de inicio', 'Start Date'],
+            'fecha_checkout' => ['Fecha de finalización', 'End Date'],
+            'fecha_reserva' => ['Fecha de la reservación', 'Booked', 'Date'],
+            'monto_bruto' => ['Monto', 'Amount', 'Importe'],
+            'comision_plataforma' => ['Tarifa por servicio', 'Host Fee', 'Comisión de anfitrión'],
+            'moneda' => ['Moneda', 'Currency'],
         ],
 
         'booking' => [
