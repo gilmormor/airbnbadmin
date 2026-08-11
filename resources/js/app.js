@@ -3,6 +3,9 @@ import 'admin-lte/dist/js/adminlte.js';
 
 import DataTable from 'datatables.net-bs5';
 import 'datatables.net-responsive-bs5';
+import Sortable from 'sortablejs';
+
+window.Sortable = Sortable;
 
 DataTable.defaults.language = {
     search: 'Buscar:',

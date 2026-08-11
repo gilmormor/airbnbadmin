@@ -4,7 +4,12 @@ use App\Http\Controllers\Admin\Beds24Controller;
 use App\Http\Controllers\Admin\DepartamentoController;
 use App\Http\Controllers\Admin\EdificioController;
 use App\Http\Controllers\Admin\ImportacionController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MenuRolController;
+use App\Http\Controllers\Admin\PermisoController;
+use App\Http\Controllers\Admin\PermisoRolController;
 use App\Http\Controllers\Admin\PropietarioController;
+use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
@@ -44,5 +49,16 @@ Route::middleware('auth')->group(function () {
         Route::get('importaciones', [ImportacionController::class, 'index'])->name('importaciones.index');
         Route::post('importaciones', [ImportacionController::class, 'store'])->name('importaciones.store');
         Route::get('beds24/propiedades', [Beds24Controller::class, 'propiedades'])->name('beds24.propiedades');
+
+        Route::resource('roles', RolController::class)->except('show')->parameters(['roles' => 'rol']);
+        Route::resource('permisos', PermisoController::class)->except('show')->parameters(['permisos' => 'permiso']);
+        Route::resource('menus', MenuController::class)->except('show')->parameters(['menus' => 'menu']);
+        Route::post('menus/guardar-orden', [MenuController::class, 'guardarOrden'])->name('menus.guardar-orden');
+
+        Route::get('permiso-rol', [PermisoRolController::class, 'index'])->name('permiso-rol.index');
+        Route::post('permiso-rol/toggle', [PermisoRolController::class, 'toggle'])->name('permiso-rol.toggle');
+
+        Route::get('menu-rol', [MenuRolController::class, 'index'])->name('menu-rol.index');
+        Route::post('menu-rol/toggle', [MenuRolController::class, 'toggle'])->name('menu-rol.toggle');
     });
 });
