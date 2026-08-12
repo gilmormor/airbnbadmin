@@ -47,6 +47,9 @@ Route::middleware('auth')->group(function () {
         Route::get('ia/{conversacion}', [IaController::class, 'show'])->name('ia.show');
         Route::post('ia/mensajes', [IaController::class, 'enviarMensaje'])->name('ia.mensajes');
         Route::delete('ia/{conversacion}', [IaController::class, 'destroy'])->name('ia.destroy');
+        Route::get('ia/mensajes/{mensaje}/excel', [IaController::class, 'excel'])->name('ia.excel');
+        Route::get('ia/mensajes/{mensaje}/pdf', [IaController::class, 'pdf'])->name('ia.pdf');
+        Route::get('ia/mensajes/{mensaje}/csv', [IaController::class, 'csv'])->name('ia.csv');
     });
 
     Route::middleware('role:Administrador')->group(function () {

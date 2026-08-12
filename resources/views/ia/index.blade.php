@@ -61,7 +61,8 @@
 
 @push('scripts')
     <script>
-        const MENSAJES_INICIALES = @json($mensajes->map(fn ($m) => ['rol' => $m->rol, 'contenido' => $m->contenido]));
+        const MENSAJES_INICIALES = @json($mensajesParaJs);
+        const IA_EXPORT_BASE = '{{ url('ia/mensajes') }}';
 
         document.addEventListener('DOMContentLoaded', () => {
             const hilo = document.getElementById('hilo-mensajes');
@@ -128,7 +129,7 @@
                 return bloques.join('') || '';
             }
 
-            function agregarBurbuja(rol, contenido) {
+            function agregarBurbuja(rol, contenido, id, exportable) {
                 hilo.querySelector('.mensaje-vacio')?.remove();
 
                 const div = document.createElement('div');
@@ -143,11 +144,29 @@
                 }
 
                 div.appendChild(burbuja);
+
+                if (rol === 'assistant' && exportable && id) {
+                    const acciones = document.createElement('div');
+                    acciones.className = 'mt-1';
+                    acciones.innerHTML = `
+                        <a href="${IA_EXPORT_BASE}/${id}/excel" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </a>
+                        <a href="${IA_EXPORT_BASE}/${id}/pdf" class="btn btn-sm btn-outline-secondary ms-1" target="_blank" rel="noopener">
+                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                        </a>
+                        <a href="${IA_EXPORT_BASE}/${id}/csv" class="btn btn-sm btn-outline-secondary ms-1" target="_blank" rel="noopener">
+                            <i class="bi bi-file-earmark-text"></i> CSV
+                        </a>
+                    `;
+                    div.appendChild(acciones);
+                }
+
                 hilo.appendChild(div);
                 hilo.scrollTop = hilo.scrollHeight;
             }
 
-            MENSAJES_INICIALES.forEach(m => agregarBurbuja(m.rol, m.contenido));
+            MENSAJES_INICIALES.forEach(m => agregarBurbuja(m.rol, m.contenido, m.id, m.exportable));
             hilo.scrollTop = hilo.scrollHeight;
 
             document.getElementById('form-mensaje').addEventListener('submit', async function (e) {
@@ -189,9 +208,9 @@
                         return;
                     }
 
-                    agregarBurbuja('assistant', data.respuesta);
+                    agregarBurbuja('assistant', data.respuesta, data.mensaje_id, data.exportable);
                 } catch (err) {
-                    agregarBurbuja('assistant', 'Ocurrió un error al enviar el mensaje. Intenta de nuevo.');
+                    agregarBurbuja('assistant', 'Ocurrió un error al enviar el mensaje. Intenta de nuevo.', null, false);
                 } finally {
                     input.disabled = false;
                     input.focus();

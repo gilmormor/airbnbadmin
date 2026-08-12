@@ -11,3 +11,26 @@
 body {
     font-family: var(--font-sans);
 }
+
+.barra-carga-global {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--bs-primary);
+    z-index: 2000;
+    opacity: 0;
+    transition: width 0.3s ease;
+}
+
+.barra-carga-global.activa {
+    opacity: 1;
+    width: 90%;
+    transition: width 6s cubic-bezier(0.1, 0.6, 0.2, 1);
+}
+
+.barra-carga-global.completa {
+    width: 100%;
+    transition: width 0.2s ease;
+}

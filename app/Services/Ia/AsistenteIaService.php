@@ -26,7 +26,7 @@ class AsistenteIaService
 
     public function __construct(private ReporteReservasService $reportes) {}
 
-    public function responder(Conversacion $conversacion): string
+    public function responder(Conversacion $conversacion): Mensaje
     {
         $apiKey = config('services.anthropic.api_key');
 
@@ -38,6 +38,7 @@ class AsistenteIaService
         }
 
         $mensajes = $this->construirHistorial($conversacion);
+        $ultimoRangoFechas = null;
 
         try {
             for ($ronda = 0; $ronda < self::MAX_RONDAS_HERRAMIENTA; $ronda++) {
@@ -59,12 +60,21 @@ class AsistenteIaService
                 if (! $usoHerramienta) {
                     $texto = collect($bloques)->where('type', 'text')->pluck('text')->implode("\n");
 
-                    return $this->guardarRespuesta($conversacion, $texto ?: 'No obtuve una respuesta de texto, intenta reformular tu pregunta.');
+                    return $this->guardarRespuesta(
+                        $conversacion,
+                        $texto ?: 'No obtuve una respuesta de texto, intenta reformular tu pregunta.',
+                        $ultimoRangoFechas
+                    );
                 }
 
                 $mensajes[] = ['role' => 'assistant', 'content' => $bloques];
 
-                $resultado = $this->ejecutarHerramienta($usoHerramienta['name'], $usoHerramienta['input'] ?? []);
+                $input = $usoHerramienta['input'] ?? [];
+                if (! empty($input['fecha_desde']) && ! empty($input['fecha_hasta'])) {
+                    $ultimoRangoFechas = ['fecha_desde' => $input['fecha_desde'], 'fecha_hasta' => $input['fecha_hasta']];
+                }
+
+                $resultado = $this->ejecutarHerramienta($usoHerramienta['name'], $input);
 
                 $mensajes[] = [
                     'role' => 'user',
@@ -76,7 +86,11 @@ class AsistenteIaService
                 ];
             }
 
-            return $this->guardarRespuesta($conversacion, 'No logré terminar de procesar tu pregunta después de varios intentos. Intenta ser más específico (por ejemplo, con un rango de fechas concreto).');
+            return $this->guardarRespuesta(
+                $conversacion,
+                'No logré terminar de procesar tu pregunta después de varios intentos. Intenta ser más específico (por ejemplo, con un rango de fechas concreto).',
+                $ultimoRangoFechas
+            );
         } catch (\Throwable $e) {
             Log::warning('Asistente IA: fallo al llamar a la API de Anthropic.', ['error' => $e->getMessage()]);
 
@@ -84,15 +98,14 @@ class AsistenteIaService
         }
     }
 
-    private function guardarRespuesta(Conversacion $conversacion, string $contenido): string
+    private function guardarRespuesta(Conversacion $conversacion, string $contenido, ?array $metadata = null): Mensaje
     {
-        Mensaje::create([
+        return Mensaje::create([
             'conversacion_id' => $conversacion->id,
             'rol' => 'assistant',
             'contenido' => $contenido,
+            'metadata' => $metadata,
         ]);
-
-        return $contenido;
     }
 
     private function construirHistorial(Conversacion $conversacion): array
