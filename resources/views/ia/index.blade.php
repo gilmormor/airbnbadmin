@@ -4,19 +4,30 @@
 
 @section('content')
     <style>
-        .chat-layout { height: calc(100vh - 220px); min-height: 420px; }
-        .chat-sidebar { width: 280px; min-width: 280px; overflow-y: auto; }
-        .chat-hilo { overflow-y: auto; }
+        .chat-layout { min-height: 420px; }
+        .chat-sidebar { overflow-y: auto; }
+        .chat-hilo { overflow-y: auto; min-width: 0; }
         .mensaje-user { text-align: right; }
-        .mensaje-user .burbuja { display: inline-block; background: var(--bs-primary); color: #fff; border-radius: .75rem; padding: .5rem .85rem; max-width: 75%; text-align: left; }
-        .mensaje-assistant .burbuja { display: inline-block; background: var(--bs-tertiary-bg); border-radius: .75rem; padding: .5rem .85rem; max-width: 75%; }
+        .mensaje-user .burbuja { display: inline-block; background: var(--bs-primary); color: #fff; border-radius: .75rem; padding: .5rem .85rem; max-width: 85%; text-align: left; overflow-x: auto; }
+        .mensaje-assistant .burbuja { display: inline-block; background: var(--bs-tertiary-bg); border-radius: .75rem; padding: .5rem .85rem; max-width: 85%; overflow-x: auto; }
         .conversacion-item.active { background: var(--bs-tertiary-bg); }
+        .chat-columna { min-width: 0; }
+
+        @media (max-width: 991.98px) {
+            .chat-sidebar { width: 100%; max-height: 160px; border-end: none !important; border-bottom: 1px solid var(--bs-border-color); padding-bottom: .75rem; margin-bottom: .75rem; }
+            .chat-hilo { height: 50vh; }
+        }
+
+        @media (min-width: 992px) {
+            .chat-layout { height: calc(100vh - 220px); }
+            .chat-sidebar { width: 280px; min-width: 280px; }
+        }
     </style>
 
     <div class="card">
         <div class="card-body">
-            <div class="d-flex chat-layout">
-                <div class="chat-sidebar border-end pe-3 me-3">
+            <div class="d-flex flex-column flex-lg-row chat-layout">
+                <div class="chat-sidebar border-end pe-lg-3 me-lg-3">
                     <a href="{{ route('ia.index') }}" class="btn btn-primary w-100 mb-3">
                         <i class="bi bi-plus-lg"></i> Nueva conversación
                     </a>
@@ -40,7 +51,7 @@
                     </div>
                 </div>
 
-                <div class="flex-grow-1 d-flex flex-column">
+                <div class="flex-grow-1 d-flex flex-column chat-columna">
                     <div id="hilo-mensajes" class="chat-hilo flex-grow-1 mb-3" data-vacio="{{ $mensajes->isEmpty() ? '1' : '0' }}">
                         <p class="text-body-secondary mensaje-vacio" @if(! $mensajes->isEmpty()) style="display:none;" @endif>
                             Escribe tu primera pregunta sobre tus reservas.
