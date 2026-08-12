@@ -40,6 +40,7 @@ class IaController extends Controller
                 'contenido' => $m->contenido,
                 'id' => $m->id,
                 'exportable' => $this->esExportable($m),
+                'grafico' => $m->metadata['grafico'] ?? null,
             ])->values(),
         ]);
     }
@@ -71,6 +72,7 @@ class IaController extends Controller
             'respuesta' => $mensaje->contenido,
             'mensaje_id' => $mensaje->id,
             'exportable' => $this->esExportable($mensaje),
+            'grafico' => $mensaje->metadata['grafico'] ?? null,
         ]);
     }
 

@@ -4,8 +4,10 @@ import 'admin-lte/dist/js/adminlte.js';
 import DataTable from 'datatables.net-bs5';
 import 'datatables.net-responsive-bs5';
 import Sortable from 'sortablejs';
+import Chart from 'chart.js/auto';
 
 window.Sortable = Sortable;
+window.Chart = Chart;
 
 DataTable.defaults.language = {
     search: 'Buscar:',

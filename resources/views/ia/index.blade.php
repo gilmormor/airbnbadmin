@@ -12,6 +12,7 @@
         .mensaje-assistant .burbuja { display: inline-block; background: var(--bs-tertiary-bg); border-radius: .75rem; padding: .5rem .85rem; max-width: 85%; overflow-x: auto; }
         .conversacion-item.active { background: var(--bs-tertiary-bg); }
         .chat-columna { min-width: 0; }
+        .grafico-ia { position: relative; height: 260px; max-width: 520px; width: 100%; }
 
         @media (max-width: 991.98px) {
             .chat-sidebar { width: 100%; max-height: 160px; border-end: none !important; border-bottom: 1px solid var(--bs-border-color); padding-bottom: .75rem; margin-bottom: .75rem; }
@@ -140,7 +141,47 @@
                 return bloques.join('') || '';
             }
 
-            function agregarBurbuja(rol, contenido, id, exportable) {
+            function renderizarGrafico(contenedor, grafico) {
+                if (!grafico || !Array.isArray(grafico.etiquetas) || !Array.isArray(grafico.valores)) {
+                    return;
+                }
+
+                const envoltorio = document.createElement('div');
+                envoltorio.className = 'grafico-ia mt-2';
+
+                if (grafico.titulo) {
+                    const titulo = document.createElement('div');
+                    titulo.className = 'small text-body-secondary mb-1';
+                    titulo.textContent = grafico.titulo;
+                    envoltorio.appendChild(titulo);
+                }
+
+                const canvas = document.createElement('canvas');
+                envoltorio.appendChild(canvas);
+                contenedor.appendChild(envoltorio);
+
+                new Chart(canvas, {
+                    type: grafico.tipo === 'linea' ? 'line' : 'bar',
+                    data: {
+                        labels: grafico.etiquetas,
+                        datasets: [{
+                            label: grafico.titulo || '',
+                            data: grafico.valores,
+                            backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } },
+                    },
+                });
+            }
+
+            function agregarBurbuja(rol, contenido, id, exportable, grafico) {
                 hilo.querySelector('.mensaje-vacio')?.remove();
 
                 const div = document.createElement('div');
@@ -173,11 +214,15 @@
                     div.appendChild(acciones);
                 }
 
+                if (rol === 'assistant' && grafico) {
+                    renderizarGrafico(div, grafico);
+                }
+
                 hilo.appendChild(div);
                 hilo.scrollTop = hilo.scrollHeight;
             }
 
-            MENSAJES_INICIALES.forEach(m => agregarBurbuja(m.rol, m.contenido, m.id, m.exportable));
+            MENSAJES_INICIALES.forEach(m => agregarBurbuja(m.rol, m.contenido, m.id, m.exportable, m.grafico));
             hilo.scrollTop = hilo.scrollHeight;
 
             document.getElementById('form-mensaje').addEventListener('submit', async function (e) {
@@ -219,9 +264,9 @@
                         return;
                     }
 
-                    agregarBurbuja('assistant', data.respuesta, data.mensaje_id, data.exportable);
+                    agregarBurbuja('assistant', data.respuesta, data.mensaje_id, data.exportable, data.grafico);
                 } catch (err) {
-                    agregarBurbuja('assistant', 'Ocurrió un error al enviar el mensaje. Intenta de nuevo.', null, false);
+                    agregarBurbuja('assistant', 'Ocurrió un error al enviar el mensaje. Intenta de nuevo.', null, false, null);
                 } finally {
                     input.disabled = false;
                     input.focus();

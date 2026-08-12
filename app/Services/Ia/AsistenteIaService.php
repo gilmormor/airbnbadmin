@@ -39,6 +39,7 @@ class AsistenteIaService
 
         $mensajes = $this->construirHistorial($conversacion);
         $ultimoRangoFechas = null;
+        $ultimoGrafico = null;
 
         try {
             for ($ronda = 0; $ronda < self::MAX_RONDAS_HERRAMIENTA; $ronda++) {
@@ -63,7 +64,7 @@ class AsistenteIaService
                     return $this->guardarRespuesta(
                         $conversacion,
                         $texto ?: 'No obtuve una respuesta de texto, intenta reformular tu pregunta.',
-                        $ultimoRangoFechas
+                        $this->metadataActual($ultimoRangoFechas, $ultimoGrafico)
                     );
                 }
 
@@ -75,6 +76,15 @@ class AsistenteIaService
                 }
 
                 $resultado = $this->ejecutarHerramienta($usoHerramienta['name'], $input);
+
+                if ($usoHerramienta['name'] === 'generar_grafico' && ! isset($resultado['error'])) {
+                    $ultimoGrafico = [
+                        'titulo' => $input['titulo'],
+                        'tipo' => $input['tipo'],
+                        'etiquetas' => $input['etiquetas'],
+                        'valores' => $input['valores'],
+                    ];
+                }
 
                 $mensajes[] = [
                     'role' => 'user',
@@ -89,13 +99,26 @@ class AsistenteIaService
             return $this->guardarRespuesta(
                 $conversacion,
                 'No logré terminar de procesar tu pregunta después de varios intentos. Intenta ser más específico (por ejemplo, con un rango de fechas concreto).',
-                $ultimoRangoFechas
+                $this->metadataActual($ultimoRangoFechas, $ultimoGrafico)
             );
         } catch (\Throwable $e) {
             Log::warning('Asistente IA: fallo al llamar a la API de Anthropic.', ['error' => $e->getMessage()]);
 
             return $this->guardarRespuesta($conversacion, 'Ocurrió un error al conectar con el asistente de IA. Intenta de nuevo en unos minutos.');
         }
+    }
+
+    private function metadataActual(?array $rangoFechas, ?array $grafico): ?array
+    {
+        if (! $rangoFechas && ! $grafico) {
+            return null;
+        }
+
+        return [
+            'fecha_desde' => $rangoFechas['fecha_desde'] ?? null,
+            'fecha_hasta' => $rangoFechas['fecha_hasta'] ?? null,
+            'grafico' => $grafico,
+        ];
     }
 
     private function guardarRespuesta(Conversacion $conversacion, string $contenido, ?array $metadata = null): Mensaje
@@ -132,29 +155,54 @@ class AsistenteIaService
             .'Si la herramienta no puede responder lo que se pregunta, dilo con honestidad en vez de adivinar. '
             .'El usuario actual tiene el rol "'.$rol.'" — los datos que devuelve la herramienta ya están filtrados '
             .'automáticamente a lo que ese usuario tiene permitido ver (si es Propietario, solo ve sus propios '
-            .'departamentos), así que no necesitas preguntar por su identidad ni filtrar tú mismo por propietario.';
+            .'departamentos), así que no necesitas preguntar por su identidad ni filtrar tú mismo por propietario. '
+            .'Si el usuario pide un gráfico, una visualización, o si mostrar los datos como gráfico ayuda a responder '
+            .'mejor (por ejemplo, comparar departamentos), llama a "generar_grafico" DESPUÉS de "consultar_reservas", '
+            .'usando cifras reales que ya obtuviste con esa herramienta — nunca inventes los valores del gráfico.';
     }
 
     private function herramientas(): array
     {
-        return [[
-            'name' => 'consultar_reservas',
-            'description' => 'Busca reservas y calcula totales (bruto, comisión de plataforma, tarifas de limpieza, '
-                .'comisión de coanfitrión, ingreso líquido del propietario) para un rango de fechas, agrupado por '
-                .'departamento. Los resultados ya vienen filtrados a lo que el usuario actual tiene permitido ver.',
-            'input_schema' => [
-                'type' => 'object',
-                'properties' => [
-                    'fecha_desde' => ['type' => 'string', 'description' => 'Fecha de inicio del rango, formato YYYY-MM-DD.'],
-                    'fecha_hasta' => ['type' => 'string', 'description' => 'Fecha de fin del rango, formato YYYY-MM-DD.'],
+        return [
+            [
+                'name' => 'consultar_reservas',
+                'description' => 'Busca reservas y calcula totales (bruto, comisión de plataforma, tarifas de limpieza, '
+                    .'comisión de coanfitrión, ingreso líquido del propietario) para un rango de fechas, agrupado por '
+                    .'departamento. Los resultados ya vienen filtrados a lo que el usuario actual tiene permitido ver.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'fecha_desde' => ['type' => 'string', 'description' => 'Fecha de inicio del rango, formato YYYY-MM-DD.'],
+                        'fecha_hasta' => ['type' => 'string', 'description' => 'Fecha de fin del rango, formato YYYY-MM-DD.'],
+                    ],
+                    'required' => ['fecha_desde', 'fecha_hasta'],
                 ],
-                'required' => ['fecha_desde', 'fecha_hasta'],
             ],
-        ]];
+            [
+                'name' => 'generar_grafico',
+                'description' => 'Genera un gráfico de barras o de línea que se muestra en el chat, a partir de datos '
+                    .'numéricos ya obtenidos con "consultar_reservas" (por ejemplo, ingreso líquido por departamento). '
+                    .'Usa como máximo 12 categorías para que el gráfico sea legible.',
+                'input_schema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'titulo' => ['type' => 'string', 'description' => 'Título breve del gráfico.'],
+                        'tipo' => ['type' => 'string', 'enum' => ['barra', 'linea'], 'description' => 'Tipo de gráfico.'],
+                        'etiquetas' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Nombre de cada categoría (eje X).'],
+                        'valores' => ['type' => 'array', 'items' => ['type' => 'number'], 'description' => 'Valor numérico de cada categoría, mismo orden y cantidad que "etiquetas".'],
+                    ],
+                    'required' => ['titulo', 'tipo', 'etiquetas', 'valores'],
+                ],
+            ],
+        ];
     }
 
     private function ejecutarHerramienta(string $nombre, array $input): array
     {
+        if ($nombre === 'generar_grafico') {
+            return $this->ejecutarGenerarGrafico($input);
+        }
+
         if ($nombre !== 'consultar_reservas') {
             return ['error' => 'Herramienta desconocida.'];
         }
@@ -179,5 +227,17 @@ class AsistenteIaService
                 'ingreso_liquido_propietario' => $g['ingreso_liquido_propietario'],
             ])->values(),
         ];
+    }
+
+    private function ejecutarGenerarGrafico(array $input): array
+    {
+        $etiquetas = $input['etiquetas'] ?? [];
+        $valores = $input['valores'] ?? [];
+
+        if (! is_array($etiquetas) || ! is_array($valores) || count($etiquetas) === 0 || count($etiquetas) !== count($valores)) {
+            return ['error' => '"etiquetas" y "valores" deben ser listas no vacías del mismo tamaño.'];
+        }
+
+        return ['ok' => true, 'mensaje' => 'Gráfico generado y mostrado al usuario en el chat.'];
     }
 }
