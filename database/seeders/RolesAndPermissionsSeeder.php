@@ -19,6 +19,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'importaciones.gestionar',
             'usuarios.gestionar',
             'reportes.ver',
+            'ia.usar',
         ];
 
         foreach ($permissions as $permission) {

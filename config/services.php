@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-5'),
+    ],
+
     'beds24' => [
         'base_url' => env('BEDS24_BASE_URL', 'https://api.beds24.com/v2'),
         'refresh_token' => env('BEDS24_REFRESH_TOKEN'),

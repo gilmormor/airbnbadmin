@@ -30,9 +30,10 @@ class MenusSeeder extends Seeder
         $this->crear(null, 'Dashboard', 'dashboard', 'bi bi-speedometer2', 1, [$administrador, $propietario]);
         $this->crear(null, 'Reservas', 'reservas.index', 'bi bi-calendar-check', 2, [$administrador, $propietario]);
         $this->crear(null, 'Reportes', 'reportes.index', 'bi bi-bar-chart-line', 3, [$administrador, $propietario]);
+        $this->crear(null, 'Asistente IA', 'ia.index', 'bi bi-stars', 4, [$administrador]);
 
         // Grupo "Administración": operación del negocio (edificios, propietarios, etc.).
-        $administracion = $this->crear(null, 'Administración', null, 'bi bi-gear', 4, [$administrador]);
+        $administracion = $this->crear(null, 'Administración', null, 'bi bi-gear', 5, [$administrador]);
         $this->crear($administracion->id, 'Edificios', 'edificios.index', 'bi bi-building', 0, [$administrador]);
         $this->crear($administracion->id, 'Propietarios', 'propietarios.index', 'bi bi-person-badge', 1, [$administrador]);
         $this->crear($administracion->id, 'Departamentos', 'departamentos.index', 'bi bi-door-closed', 2, [$administrador]);

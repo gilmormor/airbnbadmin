@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\WebhookController;
@@ -39,6 +40,13 @@ Route::middleware('auth')->group(function () {
         Route::get('reportes', [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('reportes/excel', [ReporteController::class, 'excel'])->name('reportes.excel');
         Route::get('reportes/pdf', [ReporteController::class, 'pdf'])->name('reportes.pdf');
+    });
+
+    Route::middleware('permission:ia.usar')->group(function () {
+        Route::get('ia', [IaController::class, 'index'])->name('ia.index');
+        Route::get('ia/{conversacion}', [IaController::class, 'show'])->name('ia.show');
+        Route::post('ia/mensajes', [IaController::class, 'enviarMensaje'])->name('ia.mensajes');
+        Route::delete('ia/{conversacion}', [IaController::class, 'destroy'])->name('ia.destroy');
     });
 
     Route::middleware('role:Administrador')->group(function () {
