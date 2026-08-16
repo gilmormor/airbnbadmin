@@ -4,63 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
- * Villa o conjunto que agrupa departamentos. Es la unidad de marca del sitio
- * público: cada una tiene su propia página, galería y datos de contacto.
+ * Construcción física dentro de una sucursal: el bloque A, el bloque B.
  *
- * Los campos con cast `array` son textos traducibles con una clave por idioma
- * (`['es' => '...', 'en' => '...']`). Usa el helper `texto()` para leerlos.
+ * La marca, la ubicación y el contacto viven en la sucursal; aquí solo queda lo
+ * que distingue a un edificio de otro dentro de la misma propiedad.
  */
-#[Fillable([
-    'nombre', 'slug', 'titular', 'descripcion_corta', 'descripcion_larga',
-    'direccion', 'ciudad', 'provincia', 'pais', 'latitud', 'longitud', 'como_llegar',
-    'logo_ruta', 'telefono', 'whatsapp', 'email',
-    'publicada', 'orden', 'meta_titulo', 'meta_descripcion',
-])]
+#[Fillable(['sucursal_id', 'nombre', 'pisos', 'orden'])]
 class Edificio extends Model
 {
-    protected function casts(): array
+    public function sucursal(): BelongsTo
     {
-        return [
-            'titular' => 'array',
-            'descripcion_corta' => 'array',
-            'descripcion_larga' => 'array',
-            'como_llegar' => 'array',
-            'meta_titulo' => 'array',
-            'meta_descripcion' => 'array',
-            'latitud' => 'decimal:7',
-            'longitud' => 'decimal:7',
-            'publicada' => 'boolean',
-        ];
+        return $this->belongsTo(Sucursal::class);
     }
 
     public function departamentos(): HasMany
     {
         return $this->hasMany(Departamento::class);
-    }
-
-    public function fotos(): MorphMany
-    {
-        return $this->morphMany(Foto::class, 'fotable')->orderBy('orden');
-    }
-
-    /**
-     * Devuelve un campo traducible en el idioma pedido, con reserva al idioma
-     * por defecto de la aplicación y luego a la primera traducción disponible.
-     */
-    public function texto(string $campo, ?string $idioma = null): ?string
-    {
-        $valores = $this->{$campo};
-
-        if (! is_array($valores) || $valores === []) {
-            return null;
-        }
-
-        return $valores[$idioma ?? app()->getLocale()]
-            ?? $valores[config('app.fallback_locale')]
-            ?? reset($valores);
     }
 }

@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * Los datos sensibles de acceso viven en la relación `acceso`, no aquí.
  */
 #[Fillable([
-    'edificio_id', 'propietario_id', 'nombre', 'slug', 'tipo',
+    'edificio_id', 'propietario_id', 'nombre', 'slug', 'tipo', 'piso',
     'titular', 'descripcion_corta', 'descripcion_larga',
     'capacidad_huespedes', 'dormitorios', 'banos_completos', 'banos_medios', 'superficie_m2',
     'precio_base_noche', 'moneda', 'tarifa_limpieza', 'tarifa_lavanderia', 'deposito_seguridad',
@@ -77,6 +77,12 @@ class Departamento extends Model
         return $this->belongsTo(Edificio::class);
     }
 
+    /** Atajo: la sucursal a la que pertenece, a través de su edificio. */
+    public function sucursal(): ?Sucursal
+    {
+        return $this->edificio?->sucursal;
+    }
+
     public function propietario(): BelongsTo
     {
         return $this->belongsTo(Propietario::class);
@@ -90,6 +96,11 @@ class Departamento extends Model
     public function fotos(): MorphMany
     {
         return $this->morphMany(Foto::class, 'fotable')->orderBy('orden');
+    }
+
+    public function bloques(): MorphMany
+    {
+        return $this->morphMany(BloqueContenido::class, 'bloqueable')->orderBy('orden');
     }
 
     public function camas(): HasMany

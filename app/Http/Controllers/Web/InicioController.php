@@ -3,34 +3,40 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Edificio;
 use App\Models\Resena;
+use App\Models\Sucursal;
 use Illuminate\View\View;
 
 /**
  * Portada del sitio público.
  *
- * Muestra la villa publicada junto con sus unidades. Cuando el cliente administre
- * más de una villa, esta portada pasará a listarlas y cada una tendrá su página.
+ * Muestra la sucursal publicada con todos sus departamentos, sin importar en qué
+ * edificio estén: al huésped le interesa la propiedad, no el bloque. Cuando el
+ * cliente administre más de una sucursal, esta portada pasará a listarlas.
  */
 class InicioController extends Controller
 {
     public function index(): View
     {
-        $villa = Edificio::where('publicada', true)
-            ->with(['departamentos' => function ($query) {
+        $sucursal = Sucursal::where('publicada', true)
+            ->with(['fotos', 'edificios.departamentos' => function ($query) {
                 $query->where('publicado', true)
-                    ->with('camas')
+                    ->with(['camas', 'fotos'])
                     ->orderBy('orden');
             }])
             ->orderBy('orden')
             ->firstOrFail();
+
+        $departamentos = $sucursal->edificios
+            ->flatMap->departamentos
+            ->sortBy('orden')
+            ->values();
 
         $resenas = Resena::where('publicada', true)
             ->orderBy('orden')
             ->take(6)
             ->get();
 
-        return view('web.inicio', compact('villa', 'resenas'));
+        return view('web.inicio', compact('sucursal', 'departamentos', 'resenas'));
     }
 }

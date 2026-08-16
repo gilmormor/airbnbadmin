@@ -5,7 +5,7 @@
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ route('departamentos.store') }}">
+            <form method="POST" action="{{ route('departamentos.store') }}" enctype="multipart/form-data">
                 @csrf
                 @include('admin.departamentos._form')
             </form>

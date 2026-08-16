@@ -15,19 +15,54 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Edificio</th>
-                        <th>Propietario</th>
-                        <th>% Comisión coanfitrión</th>
+                        <th>Sucursal / edificio</th>
+                        <th>Capacidad</th>
+                        <th>Precio/noche</th>
+                        <th>Fotos</th>
+                        <th>Estado</th>
                         <th class="text-end">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($departamentos as $departamento)
                         <tr>
-                            <td>{{ $departamento->nombre }}</td>
-                            <td>{{ $departamento->edificio->nombre }}</td>
-                            <td>{{ $departamento->propietario->nombre }}</td>
-                            <td>{{ $departamento->comision_coanfitrion_pct !== null ? $departamento->comision_coanfitrion_pct.'%' : '—' }}</td>
+                            <td>
+                                {{ $departamento->nombre }}
+                                <div class="small text-secondary">{{ $departamento->propietario->nombre }}</div>
+                            </td>
+                            <td>
+                                {{ $departamento->edificio->sucursal?->nombre }}
+                                <div class="small text-secondary">
+                                    {{ $departamento->edificio->nombre }}@if ($departamento->piso !== null) · piso {{ $departamento->piso }}@endif
+                                </div>
+                            </td>
+                            <td>
+                                {{ $departamento->capacidad_huespedes }}
+                                <span class="text-secondary small">
+                                    · {{ $departamento->dormitorios }} dorm
+                                </span>
+                            </td>
+                            <td>
+                                @if ($departamento->precio_base_noche > 0)
+                                    {{ $departamento->moneda }} {{ number_format($departamento->precio_base_noche, 2) }}
+                                @else
+                                    <span class="badge text-bg-warning">Sin precio</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($departamento->fotos_count > 0)
+                                    {{ $departamento->fotos_count }}
+                                @else
+                                    <span class="badge text-bg-warning">Sin fotos</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($departamento->publicado)
+                                    <span class="badge text-bg-success">Publicado</span>
+                                @else
+                                    <span class="badge text-bg-secondary">Borrador</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 <a href="{{ route('departamentos.edit', $departamento) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i>

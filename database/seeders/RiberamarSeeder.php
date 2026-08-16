@@ -6,9 +6,11 @@ use App\Models\Amenidad;
 use App\Models\Cama;
 use App\Models\Departamento;
 use App\Models\Edificio;
+use App\Models\Empresa;
 use App\Models\Propietario;
 use App\Models\Resena;
 use App\Models\Servicio;
+use App\Models\Sucursal;
 use Illuminate\Database\Seeder;
 
 /**
@@ -31,9 +33,20 @@ class RiberamarSeeder extends Seeder
             ['email' => 'reservations@riberamar.com', 'telefono' => '+1 849 382 2222']
         );
 
-        $villa = Edificio::updateOrCreate(
+        $empresa = Empresa::actual();
+        $empresa->update([
+            'razon_social' => 'Arpel',
+            'nombre_comercial' => 'Villa Ribera Mar by Arpel',
+            'telefono' => '+1 849 382 2222',
+            'email' => 'reservations@riberamar.com',
+            'ciudad' => 'Las Terrenas',
+            'pais' => 'DO',
+        ]);
+
+        $villa = Sucursal::updateOrCreate(
             ['slug' => 'villa-riberamar'],
             [
+                'empresa_id' => $empresa->id,
                 'nombre' => 'Villa Riberamar',
                 'titular' => [
                     'es' => 'Un descanso exclusivo, placentero y seguro',
@@ -63,10 +76,23 @@ class RiberamarSeeder extends Seeder
             ]
         );
 
+        // Los nombres de las unidades (A2, A3, B2, B3) revelan dos bloques físicos.
+        // El Condo es una construcción aparte dentro de la misma sucursal.
+        $bloques = [];
+
+        foreach ([['Bloque A', 3], ['Bloque B', 3], ['Condo', 1]] as $orden => [$nombre, $pisos]) {
+            $bloques[$nombre] = Edificio::firstOrCreate(
+                ['sucursal_id' => $villa->id, 'nombre' => $nombre],
+                ['pisos' => $pisos, 'orden' => $orden]
+            );
+        }
+
         // 1,829 sq ft declarados en las fichas de los penthouses = 169.92 m².
         $unidades = [
             [
                 'slug' => 'penthouse-a3',
+                'bloque' => 'Bloque A',
+                'piso' => 3,
                 'nombre' => 'Penthouse A3',
                 'tipo' => 'penthouse',
                 'titular' => [
@@ -87,6 +113,8 @@ class RiberamarSeeder extends Seeder
             ],
             [
                 'slug' => 'penthouse-b3',
+                'bloque' => 'Bloque B',
+                'piso' => 3,
                 'nombre' => 'Penthouse B3',
                 'tipo' => 'penthouse',
                 'titular' => [
@@ -107,6 +135,8 @@ class RiberamarSeeder extends Seeder
             ],
             [
                 'slug' => 'duplex-a2',
+                'bloque' => 'Bloque A',
+                'piso' => 2,
                 'nombre' => 'Duplex A2',
                 'tipo' => 'duplex',
                 'titular' => [
@@ -122,6 +152,8 @@ class RiberamarSeeder extends Seeder
             ],
             [
                 'slug' => 'duplex-b2',
+                'bloque' => 'Bloque B',
+                'piso' => 2,
                 'nombre' => 'Duplex B2',
                 'tipo' => 'duplex',
                 'titular' => [
@@ -137,6 +169,8 @@ class RiberamarSeeder extends Seeder
             ],
             [
                 'slug' => 'condo',
+                'bloque' => 'Condo',
+                'piso' => 0,
                 'nombre' => 'Condo',
                 'tipo' => 'condo',
                 'titular' => [
@@ -162,12 +196,14 @@ class RiberamarSeeder extends Seeder
         foreach ($unidades as $orden => $datos) {
             $camas = $datos['camas'];
             $slugsAmenidades = array_merge($comunes, $datos['amenidades']);
-            unset($datos['camas'], $datos['amenidades']);
+            // `bloque` solo sirve para resolver el edificio; no es una columna.
+            $edificioId = $bloques[$datos['bloque']]->id;
+            unset($datos['camas'], $datos['amenidades'], $datos['bloque']);
 
             $departamento = Departamento::withoutGlobalScopes()->updateOrCreate(
                 ['slug' => $datos['slug']],
                 $datos + [
-                    'edificio_id' => $villa->id,
+                    'edificio_id' => $edificioId,
                     'propietario_id' => $propietario->id,
                     'moneda' => 'USD',
                     'noches_minimas' => 2,
@@ -215,7 +251,117 @@ class RiberamarSeeder extends Seeder
             ]);
         }
 
+        $this->cargarBloques();
         $this->cargarResenas();
+    }
+
+    /**
+     * Secciones de texto del sitio actual de WordPress. El texto en inglés es el
+     * original; el español es una traducción de trabajo que Marketing debe revisar
+     * antes de publicar, según lo acordado en la reunión.
+     */
+    private function cargarBloques(): void
+    {
+        $terraza = [
+            'antetitulo' => ['es' => 'Exterior', 'en' => 'Exterior'],
+            'titulo' => ['es' => 'Diseño moderno minimalista', 'en' => 'Minimalist Modern Design'],
+            'cuerpo' => [
+                'es' => 'Relájate en un día soleado, o en una tarde de atardecer fresco con una copa de vino o nuestra tradicional cerveza «Presidente», buena música isleña, fruta recién cortada, y disfruta de la tranquilidad y la serenidad en la terraza con vista al mar, equipada con jacuzzi y área de picnic con parrilla.',
+                'en' => 'Just Relax on a sunny day, or on a crisp sun set evening with a glass of wine or our traditional "Presidente" beer, some feel good island music, fresh cut fruit, and enjoy the tranquility and serenity on the ocean view terrace equipped with a Jacuzzi and "picnic area" complete with BBQ for your enjoyment.',
+            ],
+        ];
+
+        $servicio = [
+            'antetitulo' => ['es' => 'Nuestras habitaciones', 'en' => 'Our Room'],
+            'titulo' => ['es' => 'Limpio y confortable', 'en' => 'Clean And Comfortable'],
+            'cuerpo' => [
+                'es' => 'Imagina todos los servicios de un hotel cinco estrellas en tu apartamento privado: sin duda un beneficio que no te puedes perder. Disfruta tu estadía sin preocupaciones porque cuentas con conserjería para reservar cenas, organizar excursiones, ayudarte con el equipaje y más, seguridad las 24 horas y limpieza diaria sin costo adicional.',
+                'en' => 'Imagine all the services of a 5 star hotel in your private apartment, definitely a benefit you cannot miss. Enjoy your stay without worries because you can count on our concierge to assist with dinner reservations, book trips, help with luggage and more, security 24/7, daily cleaning services at no additional cost.',
+            ],
+        ];
+
+        $presentacion = fn (string $es, string $en) => [
+            'antetitulo' => ['es' => 'Nuestra propiedad', 'en' => 'Our Facility'],
+            'titulo' => ['es' => 'El mejor lugar para disfrutar la vida', 'en' => 'Best place to enjoy your life'],
+            'cuerpo' => ['es' => $es, 'en' => $en],
+        ];
+
+        $penthouse = $presentacion(
+            'Este elegante penthouse tiene 170 m² de espacio interior donde cada rincón está decorado con un gusto impecable, con madera de roble, mármol italiano y acabados exquisitos que crean una atmósfera sublime y un ambiente romántico.',
+            'This elegant Penthouse has a total of 1,829 sq ft of interior space where every corner is decorated with impeccable taste, where you can find oak wood, Italian marble and exquisite finishes that create a sublime atmosphere and a romantic mood.'
+        );
+
+        $condo = $presentacion(
+            'Esta propiedad exclusiva fue diseñada para preservar la esencia de su entorno, conservando las áreas verdes y el Río Salado que desemboca en el mar, escondida en una cala apartada junto a Playa Las Ballenas.',
+            'This exclusive property was designed with the intention of preserving the essence of its surroundings by conserving the green areas and the Salt River running water into the sea, tucked away in a secluded cove by Las Ballenas Beach.'
+        );
+
+        // Lista que el sitio actual muestra bajo «Your reservation includes».
+        // El inglés es el original; el español es traducción de trabajo.
+        $incluye = function (array $lineas, string $etiqueta) {
+            return [
+                'antetitulo' => ['es' => $etiqueta, 'en' => $etiqueta],
+                'titulo' => [
+                    'es' => 'Tu reserva incluye estas comodidades',
+                    'en' => 'Your reservation includes the following amenities',
+                ],
+                'cuerpo' => [
+                    'es' => 'Decoración moderna y contemporánea, bellamente amueblado y totalmente equipado. Todos los dormitorios tienen aire acondicionado, televisor de pantalla plana, cable y satélite, ventilador de techo, wifi, home theater y caja fuerte.',
+                    'en' => 'Modern and contemporary decoration, beautifully furnished, and fully equipped. All bedrooms have air conditioners, plasma TV, cable/satellite, ceiling fan, Wi-Fi, home theater, safety deposit box.',
+                ],
+                'items' => array_map(fn ($linea) => ['es' => $linea[0], 'en' => $linea[1]], $lineas),
+            ];
+        };
+
+        $comunesLista = [
+            ['Cocina totalmente equipada, sala y comedor', 'Fully equipped Kitchen, Living room and dining room'],
+            ['Servicio de limpieza diario', 'Daily cleaning service'],
+            ['Electricidad incluida en estadías cortas', 'Electricity included on short stays'],
+            ['Servicio de chef para almuerzo o cena, US$35 por comida (los huéspedes ponen los víveres)', 'Chef Service for lunch or dinner $35USD per meal (Guest supply the groceries)'],
+        ];
+
+        $incluyePenthouse = $incluye(array_merge([
+            ['2 dormitorios (6 huéspedes), aire acondicionado en los dormitorios', '2 bedrooms (6 guests), Airconditioning in bedrooms'],
+        ], [$comunesLista[0]], [
+            ['Un penthouse elegante, seguridad 24 horas', 'An elegant Penthouse / 24 hr security'],
+            ['Terraza en la azotea con jacuzzi', 'Roof terrace with Jacuzzi'],
+        ], array_slice($comunesLista, 1)), '#PenthouseA3');
+
+        $incluyeDuplex = $incluye(array_merge([
+            ['3 dormitorios (8 huéspedes), aire acondicionado en todos los dormitorios', '3 bedrooms (8 guests), Air conditioning in all bedrooms'],
+        ], [$comunesLista[0]], [
+            ['Piscina privada con jacuzzi', 'Private pool with Jacuzzi'],
+            ['Seguridad 24 horas', '24 hr security'],
+        ], array_slice($comunesLista, 1)), '#Duplex');
+
+        $incluyeCondo = $incluye(array_merge([
+            ['2 dormitorios (6 huéspedes), 3 camas, aire acondicionado en los dormitorios', '2 bedrooms (6 guests), (3) beds, Air-conditioning in bedrooms'],
+        ], [$comunesLista[0]], [
+            ['Jardín privado con jacuzzi', 'Private garden with Jacuzzi'],
+            ['Planta eléctrica ante cortes de luz', 'Power Generator (In the event of power outages)'],
+        ], array_slice($comunesLista, 1)), '#Condo');
+
+        $porUnidad = [
+            'penthouse-a3' => [$penthouse, $terraza, $servicio, $incluyePenthouse],
+            'penthouse-b3' => [$penthouse, $terraza, $servicio, $incluyePenthouse],
+            'duplex-a2' => [$condo, $terraza, $servicio, $incluyeDuplex],
+            'duplex-b2' => [$condo, $terraza, $servicio, $incluyeDuplex],
+            'condo' => [$condo, $terraza, $servicio, $incluyeCondo],
+        ];
+
+        foreach ($porUnidad as $slug => $bloques) {
+            $departamento = Departamento::withoutGlobalScopes()->where('slug', $slug)->first();
+
+            if (! $departamento) {
+                continue;
+            }
+
+            $departamento->bloques()->delete();
+
+            foreach ($bloques as $orden => $bloque) {
+                $departamento->bloques()->create($bloque + ['orden' => $orden]);
+            }
+        }
     }
 
     /**

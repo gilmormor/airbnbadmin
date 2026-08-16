@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\Beds24Controller;
 use App\Http\Controllers\Admin\DepartamentoController;
 use App\Http\Controllers\Admin\EdificioController;
+use App\Http\Controllers\Admin\EmpresaController;
+use App\Http\Controllers\Admin\FotoController;
 use App\Http\Controllers\Admin\ImportacionController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MenuRolController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\Admin\PermisoController;
 use App\Http\Controllers\Admin\PermisoRolController;
 use App\Http\Controllers\Admin\PropietarioController;
 use App\Http\Controllers\Admin\RolController;
+use App\Http\Controllers\Admin\SucursalController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
@@ -55,10 +58,30 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:Administrador')->group(function () {
+        // La empresa es única por instalación: se edita como ajustes, sin listado.
+        Route::get('empresa', [EmpresaController::class, 'edit'])->name('empresa.edit');
+        Route::put('empresa', [EmpresaController::class, 'update'])->name('empresa.update');
+
+        Route::resource('sucursales', SucursalController::class)
+            ->except('show')->parameters(['sucursales' => 'sucursal']);
         Route::resource('edificios', EdificioController::class)->except('show');
         Route::resource('propietarios', PropietarioController::class)->except('show');
         Route::resource('departamentos', DepartamentoController::class)->except('show');
         Route::resource('usuarios', UsuarioController::class)->except('show');
+        // Galería polimórfica. Las restricciones no son cosmética: sin ellas,
+        // «fotos/7/portada» encaja en «fotos/{tipo}/{id}» tomando 7 como tipo y
+        // «portada» como id, y la acción de portada deja de existir.
+        Route::post('fotos/{tipo}/{id}', [FotoController::class, 'store'])
+            ->whereIn('tipo', ['departamento', 'sucursal'])->whereNumber('id')
+            ->name('fotos.store');
+        Route::post('fotos/{tipo}/{id}/orden', [FotoController::class, 'guardarOrden'])
+            ->whereIn('tipo', ['departamento', 'sucursal'])->whereNumber('id')
+            ->name('fotos.orden');
+
+        Route::patch('fotos/{foto}', [FotoController::class, 'update'])->name('fotos.update');
+        Route::post('fotos/{foto}/portada', [FotoController::class, 'portada'])->name('fotos.portada');
+        Route::delete('fotos/{foto}', [FotoController::class, 'destroy'])->name('fotos.destroy');
+
         Route::get('importaciones', [ImportacionController::class, 'index'])->name('importaciones.index');
         Route::post('importaciones', [ImportacionController::class, 'store'])->name('importaciones.store');
         Route::get('beds24/propiedades', [Beds24Controller::class, 'propiedades'])->name('beds24.propiedades');

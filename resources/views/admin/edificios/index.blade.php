@@ -15,7 +15,8 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
-                        <th>Dirección</th>
+                        <th>Sucursal</th>
+                        <th>Pisos</th>
                         <th>Departamentos</th>
                         <th class="text-end">Acciones</th>
                     </tr>
@@ -24,7 +25,8 @@
                     @foreach ($edificios as $edificio)
                         <tr>
                             <td>{{ $edificio->nombre }}</td>
-                            <td>{{ $edificio->direccion }}</td>
+                            <td>{{ $edificio->sucursal?->nombre ?? '—' }}</td>
+                            <td>{{ $edificio->pisos ?? '—' }}</td>
                             <td>{{ $edificio->departamentos_count }}</td>
                             <td class="text-end">
                                 <a href="{{ route('edificios.edit', $edificio) }}" class="btn btn-sm btn-outline-secondary">

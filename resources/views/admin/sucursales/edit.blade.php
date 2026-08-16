@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('page-title', 'Editar departamento')
+@section('page-title', 'Editar sucursal')
 
 @section('content')
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ route('departamentos.update', $departamento) }}"
+            <form method="POST" action="{{ route('sucursales.update', $sucursal) }}"
                   enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                @include('admin.departamentos._form')
+                @include('admin.sucursales._form')
             </form>
         </div>
     </div>
 
     {{-- Va fuera del formulario principal: HTML no admite formularios anidados. --}}
-    @include('partials.galeria', ['modelo' => $departamento, 'tipo' => 'departamento'])
+    @include('partials.galeria', ['modelo' => $sucursal, 'tipo' => 'sucursal'])
 @endsection

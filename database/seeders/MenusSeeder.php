@@ -32,13 +32,16 @@ class MenusSeeder extends Seeder
         $this->crear(null, 'Reportes', 'reportes.index', 'bi bi-bar-chart-line', 3, [$administrador, $propietario]);
         $this->crear(null, 'Asistente IA', 'ia.index', 'bi bi-stars', 4, [$administrador]);
 
-        // Grupo "Administración": operación del negocio (edificios, propietarios, etc.).
+        // Grupo "Administración": operación del negocio, de lo general a lo concreto
+        // siguiendo la jerarquía empresa → sucursal → edificio → departamento.
         $administracion = $this->crear(null, 'Administración', null, 'bi bi-gear', 5, [$administrador]);
-        $this->crear($administracion->id, 'Edificios', 'edificios.index', 'bi bi-building', 0, [$administrador]);
-        $this->crear($administracion->id, 'Propietarios', 'propietarios.index', 'bi bi-person-badge', 1, [$administrador]);
-        $this->crear($administracion->id, 'Departamentos', 'departamentos.index', 'bi bi-door-closed', 2, [$administrador]);
-        $this->crear($administracion->id, 'Importar reservas', 'importaciones.index', 'bi bi-cloud-upload', 3, [$administrador]);
-        $this->crear($administracion->id, 'Propiedades Beds24', 'beds24.propiedades', 'bi bi-diagram-3', 4, [$administrador]);
+        $this->crear($administracion->id, 'Empresa', 'empresa.edit', 'bi bi-briefcase', 0, [$administrador]);
+        $this->crear($administracion->id, 'Sucursales', 'sucursales.index', 'bi bi-geo-alt', 1, [$administrador]);
+        $this->crear($administracion->id, 'Edificios', 'edificios.index', 'bi bi-building', 2, [$administrador]);
+        $this->crear($administracion->id, 'Departamentos', 'departamentos.index', 'bi bi-door-closed', 3, [$administrador]);
+        $this->crear($administracion->id, 'Propietarios', 'propietarios.index', 'bi bi-person-badge', 4, [$administrador]);
+        $this->crear($administracion->id, 'Importar reservas', 'importaciones.index', 'bi bi-cloud-upload', 5, [$administrador]);
+        $this->crear($administracion->id, 'Propiedades Beds24', 'beds24.propiedades', 'bi bi-diagram-3', 6, [$administrador]);
     }
 
     private function crear(?int $menuId, string $nombre, ?string $ruta, ?string $icono, int $orden, array $roles): Menu

@@ -7,24 +7,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EdificioRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
+            'sucursal_id' => ['required', 'exists:sucursales,id'],
             'nombre' => ['required', 'string', 'max:150'],
-            'direccion' => ['nullable', 'string', 'max:250'],
+            'pisos' => ['nullable', 'integer', 'min:1', 'max:200'],
+            'orden' => ['required', 'integer', 'min:0'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'sucursal_id' => 'sucursal',
+            'pisos' => 'cantidad de pisos',
         ];
     }
 }
