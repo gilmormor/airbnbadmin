@@ -13,6 +13,8 @@ class PlataformasSeeder extends Seeder
             ['nombre' => 'Airbnb', 'slug' => 'airbnb'],
             ['nombre' => 'Booking.com', 'slug' => 'booking'],
             ['nombre' => 'VRBO', 'slug' => 'vrbo'],
+            // Canal propio: reservas hechas desde el sitio web, sin comisión de OTA.
+            ['nombre' => 'Directo', 'slug' => 'directo'],
         ];
 
         foreach ($plataformas as $plataforma) {

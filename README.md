@@ -1,58 +1,75 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Estadía
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gestión de alquileres de corta estadía con motor de reservas propio.
 
-## About Laravel
+Administra edificios, departamentos, propietarios y reservas; sincroniza con las OTAs
+a través de Beds24; calcula comisiones de plataforma y coanfitrión; y publica un sitio
+web donde el huésped consulta disponibilidad y reserva directamente.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Un código, varios despliegues
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+El repositorio es el producto. Cada operación corre como un despliegue independiente,
+con su propia base de datos, su propio `.env`, su propia cuenta de Beds24 y su propio
+dominio. **No es multi-tenant**: una instalación sirve a una operación.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+La razón es que `BEDS24_REFRESH_TOKEN` es un valor único por instalación, y un token
+equivale a una cuenta de Beds24.
 
-## Learning Laravel
+Despliegues actuales:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Base de datos | Operación | Moneda |
+|---|---|---|
+| `adminrent` | Arriendos en Chile | CLP |
+| `riberamar` | Villa Riberamar, Las Terrenas, República Dominicana | USD |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+En desarrollo local se alterna cambiando `DB_DATABASE` en el `.env`.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Dos caras, un proyecto
 
-## Agentic Development
+El mismo código responde en dos dominios, separados por enrutamiento:
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+| | Local | Producción (Riberamar) |
+|---|---|---|
+| Sitio público | `estadia.test` | `riberamar.com` |
+| Panel de administración | `admin.estadia.test` | `admin.riberamar.com` |
 
-```bash
-composer require laravel/boost --dev
+Ambos apuntan al mismo `public/`. Los dominios se configuran en el `.env` con
+`APP_DOMINIO_WEB` y `APP_DOMINIO_ADMIN`, así que en local se usan los del producto
+y en cada despliegue los del cliente correspondiente.
 
-php artisan boost:install
+El panel usa AdminLTE; el sitio público tiene su propio Tailwind. Comparten base de
+datos y modelos, pero no vistas ni hojas de estilo.
+
+## Puesta en marcha
+
+```
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+npm install
+npm run build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Estructura del dominio
 
-## Contributing
+- **Edificio** — villa o conjunto. Unidad de marca del sitio público.
+- **Departamento** — unidad que se alquila. Ficha completa: capacidad, superficie,
+  precios, tarifas de limpieza y lavandería, reglas de la casa, amenidades y camas.
+- **Acceso** — datos sensibles del departamento (clave de puerta, wifi), cifrados y
+  en tabla aparte para restringirlos por permiso.
+- **Reserva** — importada desde Beds24 o creada desde el sitio propio.
+- **Plataforma** — Airbnb, Booking, VRBO y Directo (canal propio, sin comisión).
+- **Tarifa** — precio por rango de fechas; gana la de mayor prioridad.
+- **Servicio** — extras que el huésped agrega a la reserva.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Los textos visibles para el huésped son columnas JSON con una clave por idioma
+(`{"es": "...", "en": "..."}`). Se leen con el método `texto()` de cada modelo, que
+resuelve el idioma activo con reserva al idioma por defecto.
 
-## Code of Conduct
+## Contenido inicial
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+`database/contenido-inicial/` guarda el contenido extraído del sitio de WordPress de
+Riberamar: 27 páginas, 9 fichas de alojamiento y el catálogo de 331 imágenes. Ver el
+README de esa carpeta para los hallazgos e inconsistencias detectadas.

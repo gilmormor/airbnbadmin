@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             PlataformasSeeder::class,
             MenusSeeder::class,
+            AmenidadesSeeder::class,
+            ServiciosSeeder::class,
+            RiberamarSeeder::class,
         ]);
     }
 }

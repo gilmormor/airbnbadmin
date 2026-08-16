@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "gilmormor/estadia",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Estadía — gestión de alquileres de corta estadía y motor de reservas propio.",
+    "keywords": ["laravel", "alquileres", "reservas", "beds24"],
     "license": "MIT",
     "require": {
         "php": "^8.3",

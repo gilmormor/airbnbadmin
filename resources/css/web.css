@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+/*
+ * Hoja de estilos del sitio público. Es independiente de app.css, que carga
+ * AdminLTE para el panel: el huésped no debe descargar el CSS del backoffice.
+ */
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Paleta tomada del entorno: arena, mar y vegetación de Las Terrenas. */
+    --color-mar-50: #f0f7f7;
+    --color-mar-100: #d9ecec;
+    --color-mar-500: #2f7d7d;
+    --color-mar-600: #246363;
+    --color-mar-700: #1c4e4e;
+    --color-mar-900: #123232;
+
+    --color-arena-50: #faf7f2;
+    --color-arena-100: #f2eade;
+    --color-arena-300: #ddc9a8;
+    --color-arena-600: #a8895b;
+}
