@@ -106,7 +106,7 @@ class FichaPublicaTest extends TestCase
             ->assertSee('/villa-riberamar/penthouse-a3', false);
     }
 
-    public function test_la_ficha_no_es_alcanzable_desde_el_dominio_del_panel(): void
+    public function test_la_ficha_no_responde_bajo_el_prefijo_del_panel(): void
     {
         $this->crearUnidad();
 

@@ -26,16 +26,17 @@ En desarrollo local se alterna cambiando `DB_DATABASE` en el `.env`.
 
 ## Dos caras, un proyecto
 
-El mismo código responde en dos dominios, separados por enrutamiento:
+El mismo código sirve el sitio público y el panel, separados por prefijo de URL:
 
-| | Local | Producción (Riberamar) |
-|---|---|---|
-| Sitio público | `estadia.test` | `riberamar.com` |
-| Panel de administración | `admin.estadia.test` | `admin.riberamar.com` |
+| | Ruta |
+|---|---|
+| Sitio público | `/` |
+| Panel de administración | `/admin` |
 
-Ambos apuntan al mismo `public/`. Los dominios se configuran en el `.env` con
-`APP_DOMINIO_WEB` y `APP_DOMINIO_ADMIN`, así que en local se usan los del producto
-y en cada despliegue los del cliente correspondiente.
+El orden de registro en `bootstrap/app.php` importa: el panel se registra antes que
+el sitio público porque la ruta `/{sucursal}/{departamento}` tiene dos segmentos y
+se tragaría `/admin/reservas`. Esa ruta además restringe su primer parámetro a
+`[^/]+` para que no capture barras.
 
 El panel usa AdminLTE; el sitio público tiene su propio Tailwind. Comparten base de
 datos y modelos, pero no vistas ni hojas de estilo.

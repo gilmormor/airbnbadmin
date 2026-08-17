@@ -22,8 +22,8 @@ use App\Http\Controllers\ReservaController;
 use Illuminate\Support\Facades\Route;
 
 /*
- * Panel de administración. Responde solo en APP_DOMINIO_ADMIN
- * (admin.estadia.test en local, admin.<cliente>.com en producción).
+ * Panel de administración. Cuelga del prefijo /admin del mismo dominio que el
+ * sitio público, así que las rutas de aquí se escriben sin repetirlo.
  */
 
 Route::get('/', fn () => redirect()->route('dashboard'));

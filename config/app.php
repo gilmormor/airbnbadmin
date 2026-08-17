@@ -56,24 +56,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Dominios de la aplicación
-    |--------------------------------------------------------------------------
-    |
-    | El mismo código responde en dos dominios: el sitio público donde aterriza
-    | el huésped y el panel de administración. Ambos apuntan al mismo public/;
-    | el enrutamiento decide qué mostrar según el dominio de entrada.
-    |
-    | En null, las rutas responden en cualquier dominio, lo que sirve para la
-    | consola y las pruebas.
-    |
-    */
-
-    'dominio_web' => env('APP_DOMINIO_WEB'),
-
-    'dominio_admin' => env('APP_DOMINIO_ADMIN'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

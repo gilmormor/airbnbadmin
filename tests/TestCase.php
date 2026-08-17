@@ -15,33 +15,40 @@ abstract class TestCase extends BaseTestCase
 {
     /**
      * Las pruebas corren sobre MySQL, y RefreshDatabase borra y vuelve a migrar la
-     * base que tenga configurada. Un .env mal apuntado bastaría para perder las
-     * reservas reales, así que se comprueba el nombre antes de tocar nada.
+     * base configurada. Un .env mal apuntado, o una configuración cacheada que
+     * ignora los valores de phpunit.xml, bastarían para perder datos reales.
+     *
+     * La comprobación va aquí y no en setUp() porque el orden es lo único que la
+     * hace útil: Laravel llama a refreshApplication() antes de setUpTraits(), que
+     * es donde RefreshDatabase arrasa con la base. Hecha en setUp() después de
+     * parent::setUp(), avisaría cuando el daño ya está hecho.
      */
-    protected function setUp(): void
+    protected function refreshApplication()
     {
-        parent::setUp();
+        parent::refreshApplication();
 
         $base = config('database.connections.'.config('database.default').'.database');
 
         if (! str_contains((string) $base, 'testing')) {
             throw new RuntimeException(
                 "Las pruebas apuntan a la base «{$base}», que no parece de pruebas. ".
-                'Revisa phpunit.xml: el nombre debe contener «testing».'
+                'Revisa phpunit.xml y borra la configuración cacheada con '.
+                '«php artisan config:clear»: si existe bootstrap/cache/config.php, '.
+                'los valores de phpunit.xml se ignoran.'
             );
         }
     }
 
-    /** Dominio del panel; las rutas están atadas a él y sin ese host dan 404. */
+    /** Ruta dentro del panel, que cuelga del prefijo /admin. */
     protected function panel(string $ruta = ''): string
     {
-        return 'http://'.config('app.dominio_admin').$ruta;
+        return '/admin'.$ruta;
     }
 
-    /** Dominio del sitio público. */
+    /** Ruta del sitio público, que responde en la raíz. */
     protected function web(string $ruta = ''): string
     {
-        return 'http://'.config('app.dominio_web').$ruta;
+        return $ruta ?: '/';
     }
 
     protected function administrador(): User

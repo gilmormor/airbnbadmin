@@ -10,11 +10,12 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 /*
- * El mismo código responde en dos dominios: el sitio público donde aterriza el
- * huésped y el panel de administración. Se separan por dominio, no por prefijo de
- * URL, para que el panel no sea visible desde el sitio del cliente.
+ * El mismo código sirve el sitio público donde aterriza el huésped y el panel de
+ * administración, separados por prefijo de URL: el panel cuelga de /admin.
  *
- * Los dominios se configuran en el .env con APP_DOMINIO_WEB y APP_DOMINIO_ADMIN.
+ * El orden de registro importa y no es cosmético: la ruta pública
+ * /{sucursal}/{departamento} tiene dos segmentos y se tragaría /admin/reservas
+ * si el panel se registrara después.
  */
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,12 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         using: function () {
             Route::middleware('web')
-                ->domain(config('app.dominio_web'))
-                ->group(base_path('routes/web.php'));
+                ->prefix('admin')
+                ->group(base_path('routes/admin.php'));
 
             Route::middleware('web')
-                ->domain(config('app.dominio_admin'))
-                ->group(base_path('routes/admin.php'));
+                ->group(base_path('routes/web.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
