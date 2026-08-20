@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Empresa;
 use App\Models\Sucursal;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +14,7 @@ use Tests\TestCase;
  * El logo pertenece a la sucursal y no a la empresa: la marca que ve el huésped
  * es la de la propiedad («Villa Ribera Mar by Arpel»), y cada sucursal tendrá la suya.
  */
-class LogoVillaTest extends TestCase
+class IdentidadVisualTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -129,5 +130,111 @@ class LogoVillaTest extends TestCase
             ->assertOk()
             ->assertSee('Villa Riberamar')
             ->assertDontSee('<img src="/storage/logos', false);
+    }
+
+    public function test_sube_el_icono_de_pestana_y_el_sitio_lo_enlaza(): void
+    {
+        $sucursal = $this->crearSucursal();
+
+        $this->actingAs($this->administrador())
+            ->put($this->panel('/sucursales/'.$sucursal->id), $this->datosBase($sucursal) + [
+                'favicon' => UploadedFile::fake()->image('icono.png', 512, 512),
+            ])
+            ->assertRedirect();
+
+        $ruta = $sucursal->fresh()->favicon_ruta;
+
+        $this->assertNotNull($ruta);
+        Storage::disk('public')->assertExists($ruta);
+
+        $this->get($this->web('/'))
+            ->assertOk()
+            ->assertSee('rel="icon"', false)
+            ->assertSee('rel="apple-touch-icon"', false)
+            ->assertSee($ruta, false);
+    }
+
+    public function test_rechaza_un_icono_que_no_sea_cuadrado(): void
+    {
+        $sucursal = $this->crearSucursal();
+
+        $this->actingAs($this->administrador())
+            ->put($this->panel('/sucursales/'.$sucursal->id), $this->datosBase($sucursal) + [
+                'favicon' => UploadedFile::fake()->image('ancho.png', 512, 200),
+            ])
+            ->assertSessionHasErrors('favicon');
+
+        $this->assertNull($sucursal->fresh()->favicon_ruta);
+    }
+
+    public function test_sin_icono_no_se_enlaza_nada(): void
+    {
+        $this->crearSucursal();
+
+        $this->get($this->web('/'))
+            ->assertOk()
+            ->assertDontSee('rel="icon"', false);
+    }
+
+    public function test_el_icono_de_la_empresa_sirve_de_respaldo(): void
+    {
+        $this->crearSucursal();
+
+        $this->actingAs($this->administrador())
+            ->put($this->panel('/empresa'), [
+                'razon_social' => 'Arpel',
+                'pais' => 'DO',
+                'favicon' => UploadedFile::fake()->image('corporativo.png', 512, 512),
+            ])
+            ->assertRedirect();
+
+        $ruta = Empresa::actual()->favicon_ruta;
+
+        $this->assertNotNull($ruta);
+        Storage::disk('public')->assertExists($ruta);
+
+        // La sucursal no tiene icono propio, así que debe heredar el de la empresa.
+        $this->get($this->web('/'))
+            ->assertOk()
+            ->assertSee($ruta, false);
+    }
+
+    public function test_el_icono_de_la_sucursal_gana_al_de_la_empresa(): void
+    {
+        $sucursal = $this->crearSucursal();
+        $administrador = $this->administrador();
+
+        $this->actingAs($administrador)->put($this->panel('/empresa'), [
+            'razon_social' => 'Arpel',
+            'pais' => 'DO',
+            'favicon' => UploadedFile::fake()->image('corporativo.png', 512, 512),
+        ]);
+
+        $this->actingAs($administrador)->put($this->panel('/sucursales/'.$sucursal->id), $this->datosBase($sucursal) + [
+            'favicon' => UploadedFile::fake()->image('propio.png', 512, 512),
+        ]);
+
+        $rutaEmpresa = Empresa::actual()->favicon_ruta;
+        $rutaSucursal = $sucursal->fresh()->favicon_ruta;
+
+        $this->get($this->web('/'))
+            ->assertOk()
+            ->assertSee($rutaSucursal, false)
+            ->assertDontSee($rutaEmpresa, false);
+    }
+
+    public function test_rechaza_un_icono_de_empresa_que_no_sea_cuadrado(): void
+    {
+        $this->crearSucursal();
+
+        $this->actingAs($this->administrador())
+            ->put($this->panel('/empresa'), [
+                'razon_social' => 'Arpel',
+                'pais' => 'DO',
+                'favicon' => UploadedFile::fake()->image('ancho.png', 512, 200),
+            ])
+            ->assertSessionHasErrors('favicon');
+
+        $this->assertNull(Empresa::actual()->favicon_ruta);
     }
 }

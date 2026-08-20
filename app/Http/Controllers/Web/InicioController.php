@@ -19,7 +19,7 @@ class InicioController extends Controller
     public function index(): View
     {
         $sucursal = Sucursal::where('publicada', true)
-            ->with(['fotos', 'edificios.departamentos' => function ($query) {
+            ->with(['empresa', 'fotos', 'edificios.departamentos' => function ($query) {
                 $query->where('publicado', true)
                     ->with(['camas', 'fotos'])
                     ->orderBy('orden');

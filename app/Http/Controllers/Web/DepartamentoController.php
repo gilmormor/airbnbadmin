@@ -21,7 +21,7 @@ class DepartamentoController extends Controller
                 ->where('slug', $sucursal)
                 ->where('publicada', true))
             ->with([
-                'edificio.sucursal', 'fotos', 'camas', 'amenidades',
+                'edificio.sucursal.empresa', 'fotos', 'camas', 'amenidades',
                 'bloques' => fn ($query) => $query->where('publicado', true)->orderBy('orden'),
                 'resenas' => fn ($query) => $query->where('publicada', true)->orderBy('orden'),
             ])

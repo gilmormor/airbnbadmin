@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('titulo', $sucursal->nombre ?? config('app.name'))</title>
     <meta name="description" content="@yield('descripcion', '')">
+
+    @if (isset($sucursal) && $sucursal->faviconUrl())
+        {{-- El mismo archivo sirve para la pestaña y para cuando alguien guarda
+             el sitio en la pantalla de inicio de su teléfono. --}}
+        <link rel="icon" href="{{ $sucursal->faviconUrl() }}" sizes="any">
+        <link rel="apple-touch-icon" href="{{ $sucursal->faviconUrl() }}">
+    @endif
+
     @vite(['resources/css/web.css', 'resources/js/web.js'])
 </head>
 <body class="bg-arena-50 text-mar-900 antialiased">

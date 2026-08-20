@@ -55,7 +55,10 @@ class SucursalController extends Controller
                 ->with('error', 'No se puede eliminar: la sucursal tiene edificios asociados.');
         }
 
-        $sucursal->logo_ruta and Storage::disk('public')->delete($sucursal->logo_ruta);
+        foreach ([$sucursal->logo_ruta, $sucursal->favicon_ruta] as $ruta) {
+            $ruta and Storage::disk('public')->delete($ruta);
+        }
+
         $sucursal->delete();
 
         return redirect()->route('sucursales.index')->with('success', 'Sucursal eliminada correctamente.');
@@ -67,8 +70,10 @@ class SucursalController extends Controller
      */
     private function atributos(SucursalRequest $request): array
     {
-        // `logo` y `quitar_logo` no son columnas: los gestiona guardarLogo().
-        $atributos = collect($request->validated())->except(['logo', 'quitar_logo'])->all();
+        // Los archivos y sus casillas no son columnas: los gestiona guardarLogo().
+        $atributos = collect($request->validated())
+            ->except(['logo', 'quitar_logo', 'favicon', 'quitar_favicon'])
+            ->all();
         $atributos['publicada'] = $request->boolean('publicada');
 
         foreach (['titular', 'descripcion_corta', 'descripcion_larga', 'como_llegar',
@@ -80,33 +85,51 @@ class SucursalController extends Controller
         return $atributos;
     }
 
-    /**
-     * Reemplaza o elimina el logo. El archivo anterior se borra siempre que deja
-     * de usarse, para que subir logos repetidamente no llene el disco.
-     */
+    /** Imágenes de marca de la sucursal: campo del formulario => carpeta de destino. */
+    private const IMAGENES = [
+        'logo' => 'logos',
+        'favicon' => 'favicons',
+    ];
+
     private function guardarLogo(SucursalRequest $request, Sucursal $sucursal): void
     {
-        $anterior = $sucursal->logo_ruta;
+        foreach (self::IMAGENES as $campo => $carpeta) {
+            $this->guardarImagen($request, $sucursal, $campo, $carpeta);
+        }
+    }
 
-        if ($request->boolean('quitar_logo') && ! $request->hasFile('logo')) {
-            $sucursal->update(['logo_ruta' => null]);
+    /**
+     * Reemplaza o elimina una imagen de marca. El archivo anterior se borra
+     * siempre que deja de usarse, para que subirlas repetidamente no llene el disco.
+     */
+    private function guardarImagen(
+        SucursalRequest $request,
+        Sucursal $sucursal,
+        string $campo,
+        string $carpeta
+    ): void {
+        $columna = $campo.'_ruta';
+        $anterior = $sucursal->$columna;
+
+        if ($request->boolean('quitar_'.$campo) && ! $request->hasFile($campo)) {
+            $sucursal->update([$columna => null]);
             $anterior and Storage::disk('public')->delete($anterior);
 
             return;
         }
 
-        if (! $request->hasFile('logo')) {
+        if (! $request->hasFile($campo)) {
             return;
         }
 
-        $archivo = $request->file('logo');
+        $archivo = $request->file($campo);
         $ruta = $archivo->storeAs(
-            "logos/{$sucursal->id}",
+            "{$carpeta}/{$sucursal->id}",
             Str::uuid().'.'.$archivo->extension(),
             'public'
         );
 
-        $sucursal->update(['logo_ruta' => $ruta]);
+        $sucursal->update([$columna => $ruta]);
 
         if ($anterior && $anterior !== $ruta) {
             Storage::disk('public')->delete($anterior);

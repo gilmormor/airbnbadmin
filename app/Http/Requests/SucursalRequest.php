@@ -47,6 +47,10 @@ class SucursalRequest extends FormRequest
             'logo' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:2048'],
             'quitar_logo' => ['boolean'],
 
+            // El icono de pestaña debe ser cuadrado o el navegador lo deforma.
+            'favicon' => ['nullable', 'image', 'mimes:png,webp', 'max:1024', 'dimensions:ratio=1'],
+            'quitar_favicon' => ['boolean'],
+
             'telefono' => ['nullable', 'string', 'max:50'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:150'],
@@ -72,6 +76,9 @@ class SucursalRequest extends FormRequest
         return [
             'logo.mimes' => 'El logo debe ser PNG, WebP o JPG. Se recomienda PNG con fondo transparente.',
             'logo.max' => 'El logo debe pesar menos de 2 MB.',
+            'favicon.dimensions' => 'El icono debe ser cuadrado: mismo ancho que alto. Se recomienda 512 × 512 píxeles.',
+            'favicon.mimes' => 'El icono debe ser PNG o WebP.',
+            'favicon.max' => 'El icono debe pesar menos de 1 MB.',
         ];
     }
 }

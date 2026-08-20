@@ -66,6 +66,42 @@
             </div>
         </div>
 
+        <div class="mb-4">
+            <label class="form-label">Icono de pestaña</label>
+
+            <div class="d-flex align-items-start gap-3">
+                @if ($s?->faviconUrl())
+                    {{-- Se muestra al tamaño real de la pestaña, que es donde importa
+                         que siga siendo reconocible. --}}
+                    <div class="border rounded p-2 text-center" style="min-width:90px;">
+                        <img src="{{ $s->faviconUrl() }}" alt="Icono actual" width="16" height="16">
+                        <div class="text-body-secondary" style="font-size:11px;">16 px</div>
+                        <img src="{{ $s->faviconUrl() }}" alt="" width="48" height="48" class="mt-1">
+                    </div>
+                @endif
+
+                <div class="flex-grow-1">
+                    <input type="file" name="favicon" class="form-control @error('favicon') is-invalid @enderror"
+                           accept="image/png,image/webp">
+                    @error('favicon')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                    <div class="form-text">
+                        Es el icono que sale junto al título en la pestaña del navegador.
+                        PNG o WebP cuadrado, idealmente 512 × 512. Como se ve a 16 píxeles,
+                        conviene un símbolo simple y no el logo completo con texto.
+                    </div>
+
+                    @if ($s?->faviconUrl())
+                        <div class="form-check mt-2">
+                            <input type="hidden" name="quitar_favicon" value="0">
+                            <input type="checkbox" name="quitar_favicon" value="1" class="form-check-input" id="quitar-favicon">
+                            <label class="form-check-label" for="quitar-favicon">Quitar el icono</label>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         @include('partials.campo-traducible', [
             'campo' => 'titular',
             'etiqueta' => 'Frase principal',

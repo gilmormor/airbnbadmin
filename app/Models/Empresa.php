@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Empresa que opera las sucursales.
@@ -14,13 +15,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 #[Fillable([
     'razon_social', 'nombre_comercial', 'identificacion_fiscal',
-    'telefono', 'email', 'direccion', 'ciudad', 'pais', 'sitio_web', 'mostrar_en_pie',
+    'telefono', 'email', 'direccion', 'ciudad', 'pais', 'sitio_web',
+    'favicon_ruta', 'mostrar_en_pie',
 ])]
 class Empresa extends Model
 {
     protected function casts(): array
     {
         return ['mostrar_en_pie' => 'boolean'];
+    }
+
+    public function faviconUrl(): ?string
+    {
+        return $this->favicon_ruta
+            ? Storage::disk('public')->url($this->favicon_ruta)
+            : null;
     }
 
     public function sucursales(): HasMany

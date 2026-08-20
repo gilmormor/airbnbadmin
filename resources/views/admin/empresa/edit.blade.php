@@ -12,7 +12,7 @@
                 y estarán disponibles para las facturas cuando exista el módulo de cobro.
             </p>
 
-            <form method="POST" action="{{ route('empresa.update') }}">
+            <form method="POST" action="{{ route('empresa.update') }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -80,6 +80,47 @@
                     <label class="form-label">Sitio web</label>
                     <input type="url" name="sitio_web" class="form-control"
                            value="{{ old('sitio_web', $empresa->sitio_web) }}" placeholder="https://">
+                </div>
+
+                <hr class="my-4">
+
+                <div class="mb-4">
+                    <label class="form-label">Icono de pestaña</label>
+
+                    <div class="d-flex align-items-start gap-3">
+                        @if ($empresa->faviconUrl())
+                            {{-- Se muestra al tamaño real de la pestaña, que es donde
+                                 importa que siga siendo reconocible. --}}
+                            <div class="border rounded p-2 text-center" style="min-width:90px;">
+                                <img src="{{ $empresa->faviconUrl() }}" alt="Icono actual" width="16" height="16">
+                                <div class="text-body-secondary" style="font-size:11px;">16 px</div>
+                                <img src="{{ $empresa->faviconUrl() }}" alt="" width="48" height="48" class="mt-1">
+                            </div>
+                        @endif
+
+                        <div class="flex-grow-1">
+                            <input type="file" name="favicon"
+                                   class="form-control @error('favicon') is-invalid @enderror"
+                                   accept="image/png,image/webp">
+                            @error('favicon')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                            <div class="form-text">
+                                Se usa como respaldo: el navegador muestra este icono en las
+                                sucursales que no tengan uno propio cargado. PNG o WebP
+                                cuadrado, idealmente 512 × 512. Como se ve a 16 píxeles,
+                                conviene un símbolo simple y no el logo completo con texto.
+                            </div>
+
+                            @if ($empresa->faviconUrl())
+                                <div class="form-check mt-2">
+                                    <input type="hidden" name="quitar_favicon" value="0">
+                                    <input type="checkbox" name="quitar_favicon" value="1"
+                                           class="form-check-input" id="quitar-favicon">
+                                    <label class="form-check-label" for="quitar-favicon">Quitar el icono</label>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-check form-switch mb-4">

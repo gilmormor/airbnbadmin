@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 #[Fillable([
     'empresa_id', 'nombre', 'slug', 'titular', 'descripcion_corta', 'descripcion_larga',
     'direccion', 'ciudad', 'provincia', 'pais', 'latitud', 'longitud', 'como_llegar',
-    'logo_ruta', 'telefono', 'whatsapp', 'email',
+    'logo_ruta', 'favicon_ruta', 'telefono', 'whatsapp', 'email',
     'publicada', 'orden', 'meta_titulo', 'meta_descripcion',
 ])]
 class Sucursal extends Model
@@ -73,6 +73,20 @@ class Sucursal extends Model
         return $this->logo_ruta
             ? Storage::disk('public')->url($this->logo_ruta)
             : null;
+    }
+
+    /**
+     * Icono de pestaña de esta sucursal, con respaldo en el de la empresa: una
+     * propiedad recién creada no debería quedarse sin icono mientras nadie le
+     * carga el suyo.
+     */
+    public function faviconUrl(): ?string
+    {
+        if ($this->favicon_ruta) {
+            return Storage::disk('public')->url($this->favicon_ruta);
+        }
+
+        return $this->empresa?->faviconUrl();
     }
 
     /** Número de WhatsApp en el formato que espera wa.me: solo dígitos. */
